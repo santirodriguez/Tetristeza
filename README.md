@@ -3,7 +3,7 @@
 A tiny neon Tetris-like built with plain HTML5 Canvas and vanilla JavaScript.  
 Fast, responsive, HiDPI-aware, with hold/ghost/next, smooth DAS/ARR, particles, and a subtle “mood” wash.
 
-![screenshot](docs/screenshot.png)
+![screenshot](docs/[screenshot.png](https://github.com/santirodriguez/Tetristeza/blob/main/screenshot.png))
 
 ---
 
