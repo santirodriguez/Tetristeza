@@ -38,7 +38,7 @@ On mobile/trackpad, use the on-screen buttons.
 ## How to run
 
 1. Clone or download this repo.
-2. Open `index.html` in a modern browser. That’s it.
+2. Open `tetristeza.html` in a modern browser. That’s it.
 
 > Tip: For the best audio experience, run from a small static server (e.g. VSCode Live Server, `python -m http.server`, etc.) so the browser happily initializes audio on user gesture.
 
