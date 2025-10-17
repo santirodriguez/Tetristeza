@@ -9,7 +9,6 @@ Fast, responsive, HiDPI-aware, with hold/ghost/next, smooth DAS/ARR, particles, 
 
 ## Highlights
 
-- **Pixel-perfect board**: no gaps at the bottom/right edges (see _Technical notes_).
 - **HiDPI canvas** with dynamic resizing.
 - **7-bag randomizer** for fair piece distribution.
 - **Lock delay** and **DAS/ARR** for smooth movement.
