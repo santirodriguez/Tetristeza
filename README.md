@@ -7,12 +7,12 @@
 A tiny neon falling-block puzzler built with plain HTML5 Canvas and vanilla JavaScript. Tetristeza stays lightweight and dependency-free while providing hold, ghost, next preview, smooth DAS/ARR movement, particles, audio, scoring, and its subtle mood system.
 
 > **Test build:** a preview of the current development version will be published at **https://santiagorodriguez.com/Tetristeza/**.
-
-![Tetristeza screenshot](screenshot.png)
+>
+> **v1.1 screenshot:** the final screenshot will be added as `assets/screenshot-v1.1.png` once the interface is finalized.
 
 ## Highlights
 
-- **No dependencies**: one HTML game plus its branding asset.
+- **No dependencies**: one HTML game plus static assets.
 - **HiDPI canvas** with responsive resizing.
 - **7-bag randomizer** for fair piece distribution.
 - **Lock delay** and **DAS/ARR** for smooth movement.
