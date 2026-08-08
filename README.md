@@ -12,7 +12,7 @@ Tetristeza is a lightweight browser game built with plain HTML5 Canvas and vanil
 
 No accounts. No ads. No analytics. No cloud. No package manager. The blocks are already dealing with enough.
 
-> **Development preview:** the v1.1 test build will be published at **https://santiagorodriguez.com/Tetristeza/**.
+> **Play online:** the current v1.1 build is available at **https://santiagorodriguez.com/Tetristeza/**.
 
 ## Why
 
@@ -58,7 +58,7 @@ On touch devices, use the on-screen controls.
 
 ## Play
 
-A development preview of v1.1 will be published at **https://santiagorodriguez.com/Tetristeza/**.
+Play the current v1.1 build at **https://santiagorodriguez.com/Tetristeza/**.
 
 To run it locally:
 
