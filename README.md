@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/branding/tetristeza-logo.svg" alt="Tetristeza" width="680">
+  <img src="assets/branding/tetristeza-logo-1.svg" alt="Tetristeza" width="680">
 </p>
 
 # Tetristeza
