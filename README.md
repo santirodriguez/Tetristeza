@@ -63,7 +63,7 @@ A development preview of v1.1 will be published at **https://santiagorodriguez.c
 To run it locally:
 
 1. Clone or download this repository.
-2. Open `tetristeza.html` in a modern browser.
+2. Open `index.html` in a modern browser.
 3. Click or tap once before expecting the browser to make noise. Browsers have trust issues with autoplay, and in this case they are probably right.
 
 ## Scoring & Levels
@@ -94,7 +94,7 @@ The selected language is saved locally and can be changed without restarting the
 
 ## Technical notes
 
-Tetristeza intentionally stays small. The interface, styles, localization, game logic, and rendering live in `tetristeza.html`, alongside a few static assets.
+Tetristeza intentionally stays small. The interface, styles, localization, game logic, and rendering live in `index.html`, alongside a few static assets.
 
 It uses HTML5 Canvas, vanilla JavaScript, CSS, the Web Audio API, and `localStorage`. There is no framework, package manager, compiler, or runtime dependency.
 
