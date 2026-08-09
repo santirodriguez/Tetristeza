@@ -5,10 +5,12 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: same-origin');
+header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none'");
 
 const TOP_LIMIT = 10;
 const MAX_NAME_CHARS = 8;
 const MAX_EMAIL_LENGTH = 254;
+const MAX_REQUEST_BYTES = 2048;
 const MAX_SCORE = 999999999;
 
 function respond(int $status, array $payload): void
@@ -33,6 +35,13 @@ function characterCount(string $value): int
     return $count === false ? PHP_INT_MAX : $count;
 }
 
+function validPlayerName(string $name): bool
+{
+    return $name !== ''
+        && characterCount($name) <= MAX_NAME_CHARS
+        && preg_match("/^[\\p{L}\\p{N} _.'’·-]+$/u", $name) === 1;
+}
+
 function sameOriginRequest(): bool
 {
     $host = $_SERVER['HTTP_HOST'] ?? '';
@@ -40,13 +49,14 @@ function sameOriginRequest(): bool
         return false;
     }
 
+    $expectedHost = preg_replace('/:\\d+$/', '', $host);
     foreach (['HTTP_ORIGIN', 'HTTP_REFERER'] as $header) {
         if (empty($_SERVER[$header])) {
             continue;
         }
 
         $sourceHost = parse_url((string) $_SERVER[$header], PHP_URL_HOST);
-        if (!is_string($sourceHost) || strcasecmp($sourceHost, preg_replace('/:\d+$/', '', $host)) !== 0) {
+        if (!is_string($sourceHost) || strcasecmp($sourceHost, (string) $expectedHost) !== 0) {
             return false;
         }
     }
@@ -80,13 +90,14 @@ function openDatabase(): PDO
         throw new RuntimeException('PDO SQLite is unavailable.');
     }
 
-    $db = new PDO('sqlite:' . databasePath(), null, null, [
+    $path = databasePath();
+    $db = new PDO('sqlite:' . $path, null, null, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 
     $db->exec('PRAGMA busy_timeout = 3000');
-    $db->exec('PRAGMA journal_mode = WAL');
+    $db->exec('PRAGMA secure_delete = ON');
     $db->exec(
         'CREATE TABLE IF NOT EXISTS scores (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -97,6 +108,10 @@ function openDatabase(): PDO
         )'
     );
     $db->exec('CREATE INDEX IF NOT EXISTS scores_rank_idx ON scores(score DESC, created_at ASC, id ASC)');
+
+    if (is_file($path) && !chmod($path, 0600)) {
+        throw new RuntimeException('Private storage permissions unavailable.');
+    }
 
     return $db;
 }
@@ -132,41 +147,62 @@ if ($contentType !== 'application/json') {
 }
 
 $contentLength = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
-if ($contentLength > 2048) {
+if ($contentLength > MAX_REQUEST_BYTES) {
     respond(413, ['ok' => false, 'error' => 'request_too_large']);
 }
 
-session_start([
+$isHttps = !empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off';
+if (!session_start([
     'cookie_httponly' => true,
     'cookie_samesite' => 'Strict',
+    'cookie_secure' => $isHttps,
     'use_strict_mode' => true,
-]);
+])) {
+    respond(503, ['ok' => false, 'error' => 'leaderboard_unavailable']);
+}
 
 $now = time();
 $recent = array_values(array_filter(
     $_SESSION['score_posts'] ?? [],
-    static fn($timestamp): bool => is_int($timestamp) && $timestamp > $now - 60
+    static function ($timestamp) use ($now): bool {
+        return is_int($timestamp) && $timestamp > $now - 60;
+    }
 ));
 if (count($recent) >= 5) {
+    session_write_close();
+    header('Retry-After: 60');
     respond(429, ['ok' => false, 'error' => 'rate_limited']);
 }
 $recent[] = $now;
 $_SESSION['score_posts'] = $recent;
+session_write_close();
 
-$raw = file_get_contents('php://input');
-$data = json_decode($raw === false ? '' : $raw, true);
+$raw = file_get_contents('php://input', false, null, 0, MAX_REQUEST_BYTES + 1);
+if ($raw === false) {
+    respond(400, ['ok' => false, 'error' => 'invalid_json']);
+}
+if (strlen($raw) > MAX_REQUEST_BYTES) {
+    respond(413, ['ok' => false, 'error' => 'request_too_large']);
+}
+
+$data = json_decode($raw, true);
 if (!is_array($data)) {
     respond(400, ['ok' => false, 'error' => 'invalid_json']);
 }
 
-$name = trim((string) ($data['name'] ?? ''));
-$email = trim((string) ($data['email'] ?? ''));
-$score = filter_var($data['score'] ?? null, FILTER_VALIDATE_INT);
-
-if ($name === '' || characterCount($name) > MAX_NAME_CHARS || preg_match('/[\x00-\x1F\x7F]/u', $name)) {
+if (!array_key_exists('name', $data) || !is_string($data['name'])) {
+    respond(422, ['ok' => false, 'error' => 'invalid_name']);
+}
+$name = trim($data['name']);
+if (!validPlayerName($name)) {
     respond(422, ['ok' => false, 'error' => 'invalid_name']);
 }
 
+$email = $data['email'] ?? '';
+if (!is_string($email)) {
+    respond(422, ['ok' => false, 'error' => 'invalid_email']);
+}
+$email = trim($email);
 if ($email !== '') {
     if (strlen($email) > MAX_EMAIL_LENGTH || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
         respond(422, ['ok' => false, 'error' => 'invalid_email']);
@@ -175,7 +211,11 @@ if ($email !== '') {
     $email = null;
 }
 
-if ($score === false || $score < 0 || $score > MAX_SCORE) {
+if (!array_key_exists('score', $data) || !is_int($data['score'])) {
+    respond(422, ['ok' => false, 'error' => 'invalid_score']);
+}
+$score = $data['score'];
+if ($score <= 0 || $score > MAX_SCORE) {
     respond(422, ['ok' => false, 'error' => 'invalid_score']);
 }
 
@@ -218,6 +258,7 @@ try {
     )->fetchAll(PDO::FETCH_COLUMN);
     $positionIndex = array_search((string) $newId, array_map('strval', $rankedIds), true);
     $position = $positionIndex === false ? null : $positionIndex + 1;
+    $scores = publicScores($db);
 
     $db->commit();
 
@@ -225,7 +266,7 @@ try {
         'ok' => true,
         'accepted' => $position !== null,
         'position' => $position,
-        'scores' => publicScores($db),
+        'scores' => $scores,
     ]);
 } catch (Throwable $error) {
     if ($db->inTransaction()) {
