@@ -129,7 +129,10 @@
   function validName(value) {
     const trimmed = value.trim();
     const length = Array.from(trimmed).length;
-    return length >= 1 && length <= 8 && /^[\p{L}\p{N} _.'’·-]+$/u.test(trimmed);
+    return length >= 1
+      && length <= 8
+      && /[\p{L}\p{N}]/u.test(trimmed)
+      && /^[\p{L}\p{N} _.'’·-]+$/u.test(trimmed);
   }
 
   function validEmail(value) {
@@ -215,6 +218,8 @@
         return;
       }
 
+      const submitRequest = requestId;
+      submittedScore = score;
       save.disabled = true;
       save.textContent = c.saving;
 
@@ -226,12 +231,14 @@
           body: JSON.stringify({name, email, score})
         });
         const result = await response.json();
+        if (submitRequest !== requestId) return;
         if (!response.ok || !result?.ok) throw new Error('save_failed');
 
-        submittedScore = score;
         panel.replaceChildren(...renderRanking(Array.isArray(result.scores) ? result.scores : [], result.accepted ? result.position : null));
         if (!result.accepted) panel.appendChild(status(c.displaced));
       } catch {
+        if (submitRequest !== requestId) return;
+        submittedScore = null;
         error.textContent = c.saveFailed;
         save.disabled = false;
         save.textContent = c.save;
