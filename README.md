@@ -8,6 +8,12 @@
   <strong>A tiny falling-block puzzler with neon colors and questionable emotional stability.</strong>
 </p>
 
+<p align="center">
+  <strong>🇺🇸 English</strong> &nbsp;·&nbsp;
+  <strong>🇦🇷 Español (Argentina)</strong> &nbsp;·&nbsp;
+  <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Catalonia.svg" alt="Catalan Senyera" height="14" /> <strong>Català</strong>
+</p>
+
 Tetristeza is a lightweight browser game built with plain HTML5 Canvas and vanilla JavaScript.
 
 No accounts. No ads. No analytics. No external cloud service. The blocks are already dealing with enough.
@@ -31,7 +37,6 @@ Scope control is a process.
 - **Global Top 10** with names up to 8 characters and an optional private email
 - Lightweight particles and minimal audio through the Web Audio API
 - Responsive keyboard and touch controls
-- English, Spanish (Argentina), and Catalan interface
 - Persistent language preference and personal best stored locally in the browser
 - HiDPI Canvas rendering
 - No framework, package manager, compiler, or runtime dependency for the game itself
@@ -67,7 +72,9 @@ To run the game locally:
 2. Open `index.html` in a modern browser.
 3. Click or tap once before expecting the browser to make noise. Browsers have trust issues with autoplay, and in this case they are probably right.
 
-The core game remains playable without a server. The global leaderboard is an optional online feature and requires PHP with PDO SQLite support.
+When Tetristeza is opened directly from disk (`file://`), the leaderboard automatically switches to an isolated **local test mode**. The complete Game Over → name/email → save → Top 10 flow works without PHP, and the test ranking is stored only in that browser. Email values are deliberately **not stored** in local test mode.
+
+On a deployed HTTP(S) site, the leaderboard does not use the local test ranking: it uses the real PHP + SQLite backend. The core game remains playable if that backend is unavailable.
 
 ## Scoring & Levels
 
@@ -88,14 +95,6 @@ At game over, Tetristeza loads the global Top 10. A qualifying score can be save
 Only the ten highest scores are retained. The email is never included in public leaderboard responses and is deleted automatically when its score falls out of the Top 10. Equal scores keep the earlier result ahead.
 
 The leaderboard is deliberately casual rather than cheat-proof: the game still runs in the browser, while the server validates submissions, applies the final ranking atomically, and rejects malformed or excessive requests.
-
-## Languages
-
-- 🇺🇸 **English** — default
-- 🇦🇷 **Español (Argentina)**
-- **Català** — represented in the interface by the traditional Senyera
-
-The selected language is saved locally and can be changed without restarting the current game.
 
 ## Author
 
