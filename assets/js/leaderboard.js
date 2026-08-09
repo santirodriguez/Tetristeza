@@ -7,7 +7,9 @@
   const GAME_OVER_TITLES = new Set(['Game Over', 'Fin del juego', 'Fi de la partida']);
   const copy = {
     en: {
-      top: 'Top 10', newTop: 'New Top Score!', name: 'Name', email: 'Email · optional',
+      top: 'Top 10', subtitle: 'Ten players briefly defeating Tetristeza.',
+      newTop: 'New Top Score!', newTopNote: 'The blocks are taking this personally.',
+      empty: 'Nobody has survived the blocks yet.', name: 'Name', email: 'Email · optional',
       emailNote: 'Private · never shown publicly', localEmailNote: 'Local test · email is not stored',
       localTest: 'Local test · this Top 10 is saved only in this browser.',
       save: 'Save score', saving: 'Saving…', unavailable: 'Top 10 unavailable',
@@ -16,7 +18,9 @@
       displaced: 'The Top 10 changed before your score was saved.'
     },
     'es-AR': {
-      top: 'Top 10', newTop: '¡Nuevo Top Score!', name: 'Nombre', email: 'Email · opcional',
+      top: 'Top 10', subtitle: 'Diez jugadores superando la Tetristeza. Por ahora.',
+      newTop: '¡Nuevo Top Score!', newTopNote: 'La Tetristeza no pudo con vos. Esta vez.',
+      empty: 'Todavía nadie sobrevivió a la Tetristeza.', name: 'Nombre', email: 'Email · opcional',
       emailNote: 'Privado · nunca se muestra públicamente', localEmailNote: 'Prueba local · el email no se guarda',
       localTest: 'Prueba local · este Top 10 se guarda solo en este navegador.',
       save: 'Guardar puntaje', saving: 'Guardando…', unavailable: 'Top 10 no disponible',
@@ -25,7 +29,9 @@
       displaced: 'El Top 10 cambió antes de guardar tu puntaje.'
     },
     ca: {
-      top: 'Top 10', newTop: 'Nou Top Score!', name: 'Nom', email: 'Email · opcional',
+      top: 'Top 10', subtitle: 'Deu jugadors superant la Tetristeza. De moment.',
+      newTop: 'Nou Top Score!', newTopNote: 'La Tetristeza no ha pogut amb tu. Aquesta vegada.',
+      empty: 'Encara ningú ha sobreviscut a la Tetristeza.', name: 'Nom', email: 'Email · opcional',
       emailNote: 'Privat · mai no es mostra públicament', localEmailNote: 'Prova local · l’email no es desa',
       localTest: 'Prova local · aquest Top 10 només es desa en aquest navegador.',
       save: 'Desa la puntuació', saving: 'Desant…', unavailable: 'Top 10 no disponible',
@@ -40,21 +46,29 @@
     .overlay .modal.leaderboard-modal{max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);overflow-y:auto;overscroll-behavior:contain}
     .leaderboard-panel{margin:14px auto 0;max-width:390px;text-align:left}
     .leaderboard-panel[hidden]{display:none}
-    .leaderboard-title{text-align:center;margin:0 0 9px;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2)}
-    .leaderboard-form{display:grid;gap:9px;margin:10px 0 14px;padding:12px;background:#0b1018;border:1px solid #222c3d;border-radius:12px}
+    .leaderboard-title{text-align:center;margin:0;font-size:17px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-2);text-shadow:0 0 16px rgba(34,211,238,.2)}
+    .leaderboard-subtitle{text-align:center;margin:3px 0 10px;font-size:11px;line-height:1.35;color:var(--muted)}
+    .leaderboard-form{display:grid;gap:9px;margin:10px 0 14px;padding:13px;background:linear-gradient(180deg,#101827,#0b1018);border:1px solid #2c3950;border-radius:13px;box-shadow:0 10px 26px rgba(0,0,0,.18)}
+    .leaderboard-form .leaderboard-subtitle{margin:0 0 2px;color:var(--accent-2)}
     .leaderboard-form label{display:grid;gap:4px;font-size:11px;font-weight:750;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
     .leaderboard-form input{width:100%;border:1px solid #303b50;background:#101623;color:var(--text);border-radius:9px;padding:9px 10px;font:inherit;outline:none}
     .leaderboard-form input:focus{border-color:var(--accent-2);box-shadow:0 0 0 2px rgba(34,211,238,.12)}
     .leaderboard-note{font-size:10px;text-transform:none;letter-spacing:0;font-weight:500;color:var(--muted)}
     .leaderboard-error{min-height:16px;margin:0!important;font-size:11px;color:var(--bad)!important;text-align:center}
-    .leaderboard-save{justify-self:center;min-width:130px}
-    .leaderboard-list{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-variant-numeric:tabular-nums}
-    .leaderboard-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:center;padding:5px 8px;border-radius:8px;background:#0e131c;border:1px solid transparent;font-size:13px}
-    .leaderboard-row.is-new{border-color:rgba(34,211,238,.5);background:#111c29;box-shadow:0 0 14px rgba(34,211,238,.08)}
-    .leaderboard-rank{color:var(--muted);text-align:right}.leaderboard-name{font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.leaderboard-score{font-weight:800}
+    .leaderboard-save{justify-self:center;min-width:130px;box-shadow:0 0 18px rgba(34,211,238,.12)}
+    .leaderboard-list{list-style:none;margin:0;padding:0;display:grid;gap:5px;font-variant-numeric:tabular-nums}
+    .leaderboard-row{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:8px;align-items:center;padding:6px 9px;border-radius:9px;background:#0e131c;border:1px solid #1d2635;font-size:13px;transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease}
+    .leaderboard-row:nth-child(1){padding-block:8px;border-color:rgba(250,204,21,.5);background:linear-gradient(90deg,rgba(250,204,21,.11),#111721 55%);box-shadow:0 0 20px rgba(250,204,21,.08)}
+    .leaderboard-row:nth-child(2){border-color:rgba(34,211,238,.32);background:linear-gradient(90deg,rgba(34,211,238,.07),#0e131c 55%)}
+    .leaderboard-row:nth-child(3){border-color:rgba(167,139,250,.32);background:linear-gradient(90deg,rgba(167,139,250,.07),#0e131c 55%)}
+    .leaderboard-row.is-new{border-color:rgba(52,211,153,.72);background:linear-gradient(90deg,rgba(52,211,153,.13),#111c29 58%);box-shadow:0 0 20px rgba(52,211,153,.12)}
+    .leaderboard-rank{color:var(--muted);text-align:right;font-weight:800}.leaderboard-row:nth-child(1) .leaderboard-rank{color:var(--yellow)}
+    .leaderboard-name{font-weight:780;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.leaderboard-score{font-weight:850;color:var(--text)}
+    .leaderboard-row:nth-child(1) .leaderboard-name,.leaderboard-row:nth-child(1) .leaderboard-score{font-weight:900}
     .leaderboard-status{text-align:center!important;font-size:12px;margin:10px 0!important}
     .leaderboard-local{color:var(--yellow)!important}
-    @media(max-width:420px){.leaderboard-panel{max-width:100%}.leaderboard-form{padding:10px}.leaderboard-row{padding:4px 6px}}
+    .leaderboard-empty{padding:12px 8px;border:1px dashed #303b50;border-radius:10px;color:var(--muted)!important}
+    @media(max-width:420px){.leaderboard-panel{max-width:100%}.leaderboard-form{padding:10px}.leaderboard-row{padding:5px 7px}.leaderboard-row:nth-child(1){padding-block:7px}}
   `;
   document.head.appendChild(style);
 
@@ -153,11 +167,25 @@
     };
   }
 
-  function renderRanking(scores, highlightPosition = null) {
-    const c = text();
+  function headingBlock(titleText, subtitleText) {
     const heading = document.createElement('h4');
     heading.className = 'leaderboard-title';
-    heading.textContent = c.top;
+    heading.textContent = titleText;
+
+    const subtitle = document.createElement('p');
+    subtitle.className = 'leaderboard-subtitle';
+    subtitle.textContent = subtitleText;
+    return [heading, subtitle];
+  }
+
+  function renderRanking(scores, highlightPosition = null) {
+    const c = text();
+    const nodes = headingBlock(c.top, c.subtitle);
+
+    if (!scores.length) {
+      nodes.push(status(c.empty, 'leaderboard-empty'));
+      return nodes;
+    }
 
     const list = document.createElement('ol');
     list.className = 'leaderboard-list';
@@ -168,7 +196,7 @@
 
       const rank = document.createElement('span');
       rank.className = 'leaderboard-rank';
-      rank.textContent = `${index + 1}.`;
+      rank.textContent = `#${index + 1}`;
 
       const name = document.createElement('span');
       name.className = 'leaderboard-name';
@@ -182,7 +210,8 @@
       list.appendChild(row);
     });
 
-    return [heading, list];
+    nodes.push(list);
+    return nodes;
   }
 
   function status(message, className = '') {
@@ -255,9 +284,7 @@
     form.className = 'leaderboard-form';
     form.noValidate = true;
 
-    const formTitle = document.createElement('h4');
-    formTitle.className = 'leaderboard-title';
-    formTitle.textContent = c.newTop;
+    const [formTitle, formSubtitle] = headingBlock(c.newTop, c.newTopNote);
 
     const nameLabel = document.createElement('label');
     nameLabel.textContent = c.name;
@@ -288,7 +315,7 @@
     save.className = 'control btn-accent leaderboard-save';
     save.textContent = c.save;
 
-    form.append(formTitle, nameLabel, emailLabel, error, save);
+    form.append(formTitle, formSubtitle, nameLabel, emailLabel, error, save);
 
     form.addEventListener('submit', async event => {
       event.preventDefault();
