@@ -10,23 +10,31 @@
 
 <p align="center">
   <strong>🇺🇸 English</strong> &nbsp;·&nbsp;
-  <strong>🇦🇷 Español (Argentina)</strong> &nbsp;·&nbsp;
+  <strong>🇦🇷 Español</strong> &nbsp;·&nbsp;
   <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Catalonia.svg" alt="Catalan Senyera" height="14" /> <strong>Català</strong>
 </p>
 
 Tetristeza is a lightweight browser game built with plain HTML5 Canvas and vanilla JavaScript.
 
-No accounts. No ads. No analytics. No external cloud service. The blocks are already dealing with enough.
-
-> **Play online:** the current v1.1 build is available at **https://santiagorodriguez.com/Tetristeza/**.
+No accounts. No ads. No analytics. No external cloud service. Just blocks, poor decisions, and now a scoreboard.
 
 ## Why
 
-I wanted a falling-block game that could open quickly and not turn “move some blocks around” into a software architecture conference.
+I wanted a lightweight falling-block game: open it, play it, close it. No launcher, no account, no dependency tree large enough to develop its own mood.
 
-Then I added particles, audio, Hold, Ghost, combos, back-to-back bonuses, a mood system, and a tiny arcade-style leaderboard.
+Then I added Hold, Ghost, particles, actual moods, and a global Top 10. Minimalism remains a moving target.
 
-Scope control is a process.
+## Play
+
+**Online:** the current v1.1 build is available at **https://santiagorodriguez.com/Tetristeza/**.
+
+**Local:** clone or download the repository, open `index.html`, and press Start. Opening it directly from disk uses an isolated local Top 10 for testing; the live site uses the real server leaderboard.
+
+## Screenshot
+
+<p align="center">
+  <img src="assets/screenshots/screenshot-v1.1.png" alt="Tetristeza v1.1 gameplay" width="900" />
+</p>
 
 ## What it does
 
@@ -40,12 +48,6 @@ Scope control is a process.
 - Persistent language preference and personal best stored locally in the browser
 - HiDPI Canvas rendering
 - No framework, package manager, compiler, or runtime dependency for the game itself
-
-## Screenshot
-
-<p align="center">
-  <img src="assets/screenshots/screenshot-v1.1.png" alt="Tetristeza v1.1 gameplay" width="900" />
-</p>
 
 ## Controls
 
@@ -62,20 +64,6 @@ Scope control is a process.
 
 On touch devices, use the on-screen controls.
 
-## Play
-
-Play the current v1.1 build at **https://santiagorodriguez.com/Tetristeza/**.
-
-To run the game locally:
-
-1. Clone or download this repository.
-2. Open `index.html` in a modern browser.
-3. Click or tap once before expecting the browser to make noise. Browsers have trust issues with autoplay, and in this case they are probably right.
-
-When Tetristeza is opened directly from disk (`file://`), the leaderboard automatically switches to an isolated **local test mode**. The complete Game Over → name/email → save → Top 10 flow works without PHP, and the test ranking is stored only in that browser. Email values are deliberately **not stored** in local test mode.
-
-On a deployed HTTP(S) site, the leaderboard does not use the local test ranking: it uses the real PHP + SQLite backend. The core game remains playable if that backend is unavailable.
-
 ## Scoring & Levels
 
 - **Single:** 100 × level
@@ -90,11 +78,9 @@ On a deployed HTTP(S) site, the leaderboard does not use the local test ranking:
 
 ## Global Top 10
 
-At game over, Tetristeza loads the global Top 10. A qualifying score can be saved with a name of up to **8 characters** and, optionally, an email address.
+At Game Over, a qualifying score can join the global Top 10 with a name of up to **8 characters** and an optional private email. Only the best ten survive; everyone else is politely forgotten by SQLite. Earlier scores win ties.
 
-Only the ten highest scores are retained. The email is never included in public leaderboard responses and is deleted automatically when its score falls out of the Top 10. Equal scores keep the earlier result ahead.
-
-The leaderboard is deliberately casual rather than cheat-proof: the game still runs in the browser, while the server validates submissions, applies the final ranking atomically, and rejects malformed or excessive requests.
+It is intentionally an arcade leaderboard, not an esports anti-cheat department.
 
 ## Author
 
@@ -104,11 +90,9 @@ The leaderboard is deliberately casual rather than cheat-proof: the game still r
 
 ## Technical notes
 
-Tetristeza intentionally stays small. The game interface, localization, gameplay logic, and rendering remain in `index.html`. The leaderboard is isolated in `assets/js/leaderboard.js` and a single `api/scores.php` endpoint.
+The game stays in plain HTML/CSS/JavaScript. The leaderboard is isolated in `assets/js/leaderboard.js` with a single self-hosted `api/scores.php` endpoint backed by SQLite.
 
-The game uses HTML5 Canvas, vanilla JavaScript, CSS, the Web Audio API, and `localStorage`. The online leaderboard uses self-hosted PHP and SQLite, with no framework or third-party service.
-
-The SQLite database is kept outside the public document root by default. Set `TETRISTEZA_DB_PATH` on the server only if a different private path is required.
+The SQLite database lives outside the public document root by default. Set `TETRISTEZA_DB_PATH` only when a different private server path is needed.
 
 ## License
 
