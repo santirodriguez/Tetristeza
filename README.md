@@ -28,7 +28,7 @@ Then I added Hold, Ghost, particles, actual moods, and a global Top 10. Minimali
 
 **Online:** the current v1.1 build is available at **https://santiagorodriguez.com/Tetristeza/**.
 
-**Local:** clone or download the repository, open `index.html`, and press Start. Opening it directly from disk uses an isolated local Top 10 for testing; the live site uses the real server leaderboard.
+**Local:** clone or download the repository, open `index.html`, and press Start. Opening it directly from disk uses an isolated local Top 10 for testing; an HTTP(S) deployment uses the real server leaderboard.
 
 ## Screenshot
 
