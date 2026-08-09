@@ -2,26 +2,34 @@
   'use strict';
 
   const API_URL = 'api/scores.php';
+  const LOCAL_TEST = window.location.protocol === 'file:';
+  const LOCAL_STORAGE_KEY = 'tetristeza:test-top10:v1';
   const GAME_OVER_TITLES = new Set(['Game Over', 'Fin del juego', 'Fi de la partida']);
   const copy = {
     en: {
       top: 'Top 10', newTop: 'New Top Score!', name: 'Name', email: 'Email · optional',
-      emailNote: 'Private · never shown publicly', save: 'Save score', saving: 'Saving…',
-      unavailable: 'Top 10 unavailable', invalidName: 'Use 1–8 letters or numbers; simple punctuation is OK.',
+      emailNote: 'Private · never shown publicly', localEmailNote: 'Local test · email is not stored',
+      localTest: 'Local test · this Top 10 is saved only in this browser.',
+      save: 'Save score', saving: 'Saving…', unavailable: 'Top 10 unavailable',
+      invalidName: 'Use 1–8 letters or numbers; simple punctuation is OK.',
       invalidEmail: 'Enter a valid email or leave it blank.', saveFailed: 'Could not save the score.',
       displaced: 'The Top 10 changed before your score was saved.'
     },
     'es-AR': {
       top: 'Top 10', newTop: '¡Nuevo Top Score!', name: 'Nombre', email: 'Email · opcional',
-      emailNote: 'Privado · nunca se muestra públicamente', save: 'Guardar puntaje', saving: 'Guardando…',
-      unavailable: 'Top 10 no disponible', invalidName: 'Usá 1–8 letras o números; se admite puntuación simple.',
+      emailNote: 'Privado · nunca se muestra públicamente', localEmailNote: 'Prueba local · el email no se guarda',
+      localTest: 'Prueba local · este Top 10 se guarda solo en este navegador.',
+      save: 'Guardar puntaje', saving: 'Guardando…', unavailable: 'Top 10 no disponible',
+      invalidName: 'Usá 1–8 letras o números; se admite puntuación simple.',
       invalidEmail: 'Ingresá un email válido o dejalo vacío.', saveFailed: 'No se pudo guardar el puntaje.',
       displaced: 'El Top 10 cambió antes de guardar tu puntaje.'
     },
     ca: {
       top: 'Top 10', newTop: 'Nou Top Score!', name: 'Nom', email: 'Email · opcional',
-      emailNote: 'Privat · mai no es mostra públicament', save: 'Desa la puntuació', saving: 'Desant…',
-      unavailable: 'Top 10 no disponible', invalidName: 'Fes servir 1–8 lletres o números; s’admet puntuació simple.',
+      emailNote: 'Privat · mai no es mostra públicament', localEmailNote: 'Prova local · l’email no es desa',
+      localTest: 'Prova local · aquest Top 10 només es desa en aquest navegador.',
+      save: 'Desa la puntuació', saving: 'Desant…', unavailable: 'Top 10 no disponible',
+      invalidName: 'Fes servir 1–8 lletres o números; s’admet puntuació simple.',
       invalidEmail: 'Introdueix un email vàlid o deixa’l buit.', saveFailed: 'No s’ha pogut desar la puntuació.',
       displaced: 'El Top 10 ha canviat abans de desar la puntuació.'
     }
@@ -44,7 +52,8 @@
     .leaderboard-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:center;padding:5px 8px;border-radius:8px;background:#0e131c;border:1px solid transparent;font-size:13px}
     .leaderboard-row.is-new{border-color:rgba(34,211,238,.5);background:#111c29;box-shadow:0 0 14px rgba(34,211,238,.08)}
     .leaderboard-rank{color:var(--muted);text-align:right}.leaderboard-name{font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.leaderboard-score{font-weight:800}
-    .leaderboard-status{text-align:center!important;font-size:12px;margin:10px 0 0!important}
+    .leaderboard-status{text-align:center!important;font-size:12px;margin:10px 0!important}
+    .leaderboard-local{color:var(--yellow)!important}
     @media(max-width:420px){.leaderboard-panel{max-width:100%}.leaderboard-form{padding:10px}.leaderboard-row{padding:4px 6px}}
   `;
   document.head.appendChild(style);
@@ -65,6 +74,7 @@
   let lastGameOverScore = null;
   let lastGameOverLanguage = null;
   let submittedScore = null;
+  let localMemoryScores = [];
 
   function language() {
     const lang = document.documentElement.lang || 'en';
@@ -84,6 +94,63 @@
     if (score <= 0) return false;
     if (scores.length < 10) return true;
     return score > Number(scores[9]?.score || 0);
+  }
+
+  function normalizeLocalScores(entries) {
+    if (!Array.isArray(entries)) return [];
+    return entries
+      .filter(entry => entry && typeof entry.name === 'string' && Number.isSafeInteger(entry.score) && entry.score > 0)
+      .map(entry => ({
+        id: String(entry.id || ''),
+        name: Array.from(entry.name).slice(0, 8).join(''),
+        score: entry.score,
+        createdAt: Number.isSafeInteger(entry.createdAt) ? entry.createdAt : 0
+      }))
+      .sort((a, b) => b.score - a.score || a.createdAt - b.createdAt || a.id.localeCompare(b.id))
+      .slice(0, 10);
+  }
+
+  function readLocalScores() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+      localMemoryScores = normalizeLocalScores(parsed);
+    } catch {
+      localMemoryScores = normalizeLocalScores(localMemoryScores);
+    }
+    return localMemoryScores.slice();
+  }
+
+  function writeLocalScores(scores) {
+    localMemoryScores = normalizeLocalScores(scores);
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localMemoryScores));
+    } catch {
+      // In-memory fallback keeps the current local test session usable.
+    }
+  }
+
+  function publicLocalScores(scores) {
+    return scores.map(({name, score}) => ({name, score}));
+  }
+
+  function saveLocalScore(name, score) {
+    const scores = readLocalScores();
+    if (!qualifies(score, publicLocalScores(scores))) {
+      return {ok: true, accepted: false, position: null, scores: publicLocalScores(scores)};
+    }
+
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    scores.push({id, name, score, createdAt: Date.now()});
+    const ranked = normalizeLocalScores(scores);
+    writeLocalScores(ranked);
+    const positionIndex = ranked.findIndex(entry => entry.id === id);
+
+    return {
+      ok: true,
+      accepted: positionIndex !== -1,
+      position: positionIndex === -1 ? null : positionIndex + 1,
+      scores: publicLocalScores(ranked)
+    };
   }
 
   function renderRanking(scores, highlightPosition = null) {
@@ -118,12 +185,15 @@
     return [heading, list];
   }
 
-  function status(message, isError = false) {
+  function status(message, className = '') {
     const p = document.createElement('p');
-    p.className = 'leaderboard-status';
-    if (isError) p.style.color = 'var(--bad)';
+    p.className = `leaderboard-status${className ? ` ${className}` : ''}`;
     p.textContent = message;
     return p;
+  }
+
+  function localTestNotice() {
+    return LOCAL_TEST ? status(text().localTest, 'leaderboard-local') : null;
   }
 
   function validName(value) {
@@ -141,6 +211,10 @@
   }
 
   async function loadScores() {
+    if (LOCAL_TEST) {
+      return {response: {ok: true}, result: {ok: true, scores: publicLocalScores(readLocalScores())}};
+    }
+
     const options = {headers: {'Accept': 'application/json'}, credentials: 'same-origin'};
     let timer = null;
     let controller = null;
@@ -158,6 +232,21 @@
     } finally {
       if (timer !== null) clearTimeout(timer);
     }
+  }
+
+  async function submitScore(name, email, score) {
+    if (LOCAL_TEST) {
+      return {response: {ok: true}, result: saveLocalScore(name, score)};
+    }
+
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      credentials: 'same-origin',
+      body: JSON.stringify({name, email, score})
+    });
+    const result = await response.json();
+    return {response, result};
   }
 
   function buildForm(score) {
@@ -188,7 +277,7 @@
     emailInput.autocomplete = 'email';
     const emailNote = document.createElement('span');
     emailNote.className = 'leaderboard-note';
-    emailNote.textContent = c.emailNote;
+    emailNote.textContent = LOCAL_TEST ? c.localEmailNote : c.emailNote;
     emailLabel.append(emailInput, emailNote);
 
     const error = document.createElement('p');
@@ -224,18 +313,16 @@
       save.textContent = c.saving;
 
       try {
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
-          credentials: 'same-origin',
-          body: JSON.stringify({name, email, score})
-        });
-        const result = await response.json();
+        const {response, result} = await submitScore(name, email, score);
         if (submitRequest !== requestId) return;
         if (!response.ok || !result?.ok) throw new Error('save_failed');
 
-        panel.replaceChildren(...renderRanking(Array.isArray(result.scores) ? result.scores : [], result.accepted ? result.position : null));
-        if (!result.accepted) panel.appendChild(status(c.displaced));
+        const nodes = [];
+        const notice = localTestNotice();
+        if (notice) nodes.push(notice);
+        nodes.push(...renderRanking(Array.isArray(result.scores) ? result.scores : [], result.accepted ? result.position : null));
+        if (!result.accepted) nodes.push(status(c.displaced));
+        panel.replaceChildren(...nodes);
       } catch {
         if (submitRequest !== requestId) return;
         submittedScore = null;
@@ -264,6 +351,8 @@
 
       const scores = result.scores;
       const nodes = [];
+      const notice = localTestNotice();
+      if (notice) nodes.push(notice);
       if (submittedScore !== score && qualifies(score, scores)) nodes.push(buildForm(score));
       nodes.push(...renderRanking(scores));
       panel.replaceChildren(...nodes);
