@@ -2,6 +2,7 @@
   'use strict';
 
   const API_URL = 'api/scores.php';
+  const REQUEST_TIMEOUT_MS = 5000;
   const LOCAL_TEST = window.location.protocol === 'file:';
   const LOCAL_STORAGE_KEY = 'tetristeza:test-top10:v1';
   const GAME_OVER_TITLES = new Set(['Game Over', 'Fin del juego', 'Fi de la partida']);
@@ -85,9 +86,12 @@
   modal.insertBefore(panel, buttonRow);
 
   let requestId = 0;
+  let gameOverSessionId = 0;
+  let gameOverActive = false;
   let lastGameOverScore = null;
   let lastGameOverLanguage = null;
   let submittedScore = null;
+  let pendingSubmission = null;
   let localMemoryScores = [];
 
   function language() {
@@ -251,7 +255,7 @@
     if (typeof AbortController === 'function') {
       controller = new AbortController();
       options.signal = controller.signal;
-      timer = setTimeout(() => controller.abort(), 5000);
+      timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     }
 
     try {
@@ -268,14 +272,28 @@
       return {response: {ok: true}, result: saveLocalScore(name, score)};
     }
 
-    const response = await fetch(API_URL, {
+    const options = {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
       credentials: 'same-origin',
       body: JSON.stringify({name, email, score})
-    });
-    const result = await response.json();
-    return {response, result};
+    };
+    let timer = null;
+    let controller = null;
+
+    if (typeof AbortController === 'function') {
+      controller = new AbortController();
+      options.signal = controller.signal;
+      timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    }
+
+    try {
+      const response = await fetch(API_URL, options);
+      const result = await response.json();
+      return {response, result};
+    } finally {
+      if (timer !== null) clearTimeout(timer);
+    }
   }
 
   function buildForm(score) {
@@ -324,38 +342,43 @@
       error.textContent = '';
 
       if (!validName(name)) {
-        error.textContent = c.invalidName;
+        error.textContent = text().invalidName;
         nameInput.focus();
         return;
       }
       if (!validEmail(email)) {
-        error.textContent = c.invalidEmail;
+        error.textContent = text().invalidEmail;
         emailInput.focus();
         return;
       }
 
-      const submitRequest = requestId;
-      submittedScore = score;
+      const submitSession = gameOverSessionId;
+      if (pendingSubmission?.sessionId === submitSession && pendingSubmission.score === score) return;
+
+      pendingSubmission = {score, sessionId: submitSession};
       save.disabled = true;
-      save.textContent = c.saving;
+      save.textContent = text().saving;
 
       try {
         const {response, result} = await submitScore(name, email, score);
-        if (submitRequest !== requestId) return;
+        if (!gameOverActive || submitSession !== gameOverSessionId) return;
         if (!response.ok || !result?.ok) throw new Error('save_failed');
 
+        pendingSubmission = null;
+        submittedScore = score;
         const nodes = [];
         const notice = localTestNotice();
         if (notice) nodes.push(notice);
         nodes.push(...renderRanking(Array.isArray(result.scores) ? result.scores : [], result.accepted ? result.position : null));
-        if (!result.accepted) nodes.push(status(c.displaced));
+        if (!result.accepted) nodes.push(status(text().displaced));
         panel.replaceChildren(...nodes);
       } catch {
-        if (submitRequest !== requestId) return;
+        if (!gameOverActive || submitSession !== gameOverSessionId) return;
+        pendingSubmission = null;
         submittedScore = null;
-        error.textContent = c.saveFailed;
+        error.textContent = text().saveFailed;
         save.disabled = false;
-        save.textContent = c.save;
+        save.textContent = text().save;
       }
     });
 
@@ -392,18 +415,36 @@
   function sync() {
     const isGameOver = GAME_OVER_TITLES.has(title.textContent.trim()) && overlay.getAttribute('aria-hidden') === 'false';
     if (isGameOver) {
+      if (!gameOverActive) {
+        gameOverActive = true;
+        gameOverSessionId += 1;
+      }
+
       modal.classList.add('leaderboard-modal');
       const score = parseScore();
       const currentLanguage = language();
+      const submissionPending = pendingSubmission?.sessionId === gameOverSessionId && pendingSubmission.score === score;
+
+      if (submissionPending) {
+        lastGameOverScore = score;
+        lastGameOverLanguage = currentLanguage;
+        return;
+      }
+
       if (panel.hidden || lastGameOverScore !== score || lastGameOverLanguage !== currentLanguage) {
         showGameOverLeaderboard();
       }
     } else {
       modal.classList.remove('leaderboard-modal');
+      if (gameOverActive) {
+        gameOverActive = false;
+        gameOverSessionId += 1;
+      }
       requestId += 1;
       lastGameOverScore = null;
       lastGameOverLanguage = null;
       submittedScore = null;
+      pendingSubmission = null;
       panel.hidden = true;
       panel.replaceChildren();
     }
