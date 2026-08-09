@@ -7,7 +7,7 @@
   const GAME_OVER_TITLES = new Set(['Game Over', 'Fin del juego', 'Fi de la partida']);
   const copy = {
     en: {
-      top: 'Top 10', subtitle: 'Ten players briefly defeating Tetristeza.',
+      top: 'Top 10', subtitle: 'Brief victories over Tetristeza, ranked.',
       newTop: 'New Top Score!', newTopNote: 'The blocks are taking this personally.',
       empty: 'Nobody has survived the blocks yet.', name: 'Name', email: 'Email · optional',
       emailNote: 'Private · never shown publicly', localEmailNote: 'Local test · email is not stored',
@@ -18,7 +18,7 @@
       displaced: 'The Top 10 changed before your score was saved.'
     },
     'es-AR': {
-      top: 'Top 10', subtitle: 'Diez jugadores superando la Tetristeza. Por ahora.',
+      top: 'Top 10', subtitle: 'Superando la Tetristeza, un puntaje a la vez.',
       newTop: '¡Nuevo Top Score!', newTopNote: 'La Tetristeza no pudo con vos. Esta vez.',
       empty: 'Todavía nadie sobrevivió a la Tetristeza.', name: 'Nombre', email: 'Email · opcional',
       emailNote: 'Privado · nunca se muestra públicamente', localEmailNote: 'Prueba local · el email no se guarda',
@@ -29,7 +29,7 @@
       displaced: 'El Top 10 cambió antes de guardar tu puntaje.'
     },
     ca: {
-      top: 'Top 10', subtitle: 'Deu jugadors superant la Tetristeza. De moment.',
+      top: 'Top 10', subtitle: 'Superant la Tetristeza, una puntuació cada vegada.',
       newTop: 'Nou Top Score!', newTopNote: 'La Tetristeza no ha pogut amb tu. Aquesta vegada.',
       empty: 'Encara ningú ha sobreviscut a la Tetristeza.', name: 'Nom', email: 'Email · opcional',
       emailNote: 'Privat · mai no es mostra públicament', localEmailNote: 'Prova local · l’email no es desa',
