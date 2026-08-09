@@ -29,6 +29,7 @@
 
   const style = document.createElement('style');
   style.textContent = `
+    .overlay .modal.leaderboard-modal{max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);overflow-y:auto;overscroll-behavior:contain}
     .leaderboard-panel{margin:14px auto 0;max-width:390px;text-align:left}
     .leaderboard-panel[hidden]{display:none}
     .leaderboard-title{text-align:center;margin:0 0 9px;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2)}
@@ -146,7 +147,7 @@
     nameLabel.textContent = c.name;
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
-    nameInput.maxLength = 16;
+    nameInput.maxLength = 8;
     nameInput.autocomplete = 'nickname';
     nameInput.required = true;
     nameInput.spellcheck = false;
@@ -243,8 +244,10 @@
   function sync() {
     const isGameOver = GAME_OVER_TITLES.has(title.textContent.trim()) && overlay.getAttribute('aria-hidden') === 'false';
     if (isGameOver) {
+      modal.classList.add('leaderboard-modal');
       showGameOverLeaderboard(true);
     } else {
+      modal.classList.remove('leaderboard-modal');
       requestId += 1;
       lastGameOverScore = null;
       panel.hidden = true;
