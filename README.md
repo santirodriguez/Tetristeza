@@ -10,15 +10,15 @@
 
 Tetristeza is a lightweight browser game built with plain HTML5 Canvas and vanilla JavaScript.
 
-No accounts. No ads. No analytics. No cloud. No package manager. The blocks are already dealing with enough.
+No accounts. No ads. No analytics. No external cloud service. The blocks are already dealing with enough.
 
 > **Play online:** the current v1.1 build is available at **https://santiagorodriguez.com/Tetristeza/**.
 
 ## Why
 
-I wanted a falling-block game that could live in a single HTML file, open quickly, and not turn “move some blocks around” into a software architecture conference.
+I wanted a falling-block game that could open quickly and not turn “move some blocks around” into a software architecture conference.
 
-Then I added particles, audio, Hold, Ghost, combos, back-to-back bonuses, and a mood system.
+Then I added particles, audio, Hold, Ghost, combos, back-to-back bonuses, a mood system, and a tiny arcade-style leaderboard.
 
 Scope control is a process.
 
@@ -28,12 +28,13 @@ Scope control is a process.
 - **Hold**, **Next**, and **Ghost** piece support
 - Smooth movement with **DAS/ARR**, soft drop, and hard drop
 - **Scoring, combos, back-to-back bonuses, and levels**
+- **Global Top 10** with names up to 8 characters and an optional private email
 - Lightweight particles and minimal audio through the Web Audio API
 - Responsive keyboard and touch controls
 - English, Spanish (Argentina), and Catalan interface
-- Persistent language preference stored locally in the browser
+- Persistent language preference and personal best stored locally in the browser
 - HiDPI Canvas rendering
-- No framework, runtime dependency, build step, or suspiciously ambitious dependency tree
+- No framework, package manager, compiler, or runtime dependency for the game itself
 
 ## Screenshot
 
@@ -60,11 +61,13 @@ On touch devices, use the on-screen controls.
 
 Play the current v1.1 build at **https://santiagorodriguez.com/Tetristeza/**.
 
-To run it locally:
+To run the game locally:
 
 1. Clone or download this repository.
 2. Open `index.html` in a modern browser.
 3. Click or tap once before expecting the browser to make noise. Browsers have trust issues with autoplay, and in this case they are probably right.
+
+The core game remains playable without a server. The global leaderboard is an optional online feature and requires PHP with PDO SQLite support.
 
 ## Scoring & Levels
 
@@ -77,6 +80,14 @@ To run it locally:
 - **Combo:** +50 × level × combo streak
 - The level increases every **10 lines**
 - Gravity accelerates down to a minimum interval of **120 ms**
+
+## Global Top 10
+
+At game over, Tetristeza loads the global Top 10. A qualifying score can be saved with a name of up to **8 characters** and, optionally, an email address.
+
+Only the ten highest scores are retained. The email is never included in public leaderboard responses and is deleted automatically when its score falls out of the Top 10. Equal scores keep the earlier result ahead.
+
+The leaderboard is deliberately casual rather than cheat-proof: the game still runs in the browser, while the server validates submissions, applies the final ranking atomically, and rejects malformed or excessive requests.
 
 ## Languages
 
@@ -94,11 +105,11 @@ The selected language is saved locally and can be changed without restarting the
 
 ## Technical notes
 
-Tetristeza intentionally stays small. The interface, styles, localization, game logic, and rendering live in `index.html`, alongside a few static assets.
+Tetristeza intentionally stays small. The game interface, localization, gameplay logic, and rendering remain in `index.html`. The leaderboard is isolated in `assets/js/leaderboard.js` and a single `api/scores.php` endpoint.
 
-It uses HTML5 Canvas, vanilla JavaScript, CSS, the Web Audio API, and `localStorage`. There is no framework, package manager, compiler, or runtime dependency.
+The game uses HTML5 Canvas, vanilla JavaScript, CSS, the Web Audio API, and `localStorage`. The online leaderboard uses self-hosted PHP and SQLite, with no framework or third-party service.
 
-The v1.1 update adds localization, branding, responsive layout, touch-friendly controls, and accessibility polish without changing the core gameplay rules.
+The SQLite database is kept outside the public document root by default. Set `TETRISTEZA_DB_PATH` on the server only if a different private path is required.
 
 ## License
 
