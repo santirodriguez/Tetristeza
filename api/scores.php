@@ -64,21 +64,41 @@ function sameOriginRequest(): bool
     return true;
 }
 
-function databasePath(): string
+function privateConfiguredPath(string $configured, string $documentRoot): string
 {
-    $configured = getenv('TETRISTEZA_DB_PATH');
-    if (is_string($configured) && trim($configured) !== '') {
-        return $configured;
+    $configuredDir = realpath(dirname($configured));
+    $publicRoot = realpath($documentRoot);
+    if ($configuredDir === false || $publicRoot === false) {
+        throw new RuntimeException('Configured private storage path is invalid.');
     }
 
+    $configuredPrefix = rtrim($configuredDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    $publicPrefix = rtrim($publicRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    if ($configuredDir === $publicRoot || strpos($configuredPrefix, $publicPrefix) === 0) {
+        throw new RuntimeException('Configured storage must be outside the public document root.');
+    }
+
+    return $configuredDir . DIRECTORY_SEPARATOR . basename($configured);
+}
+
+function databasePath(): string
+{
     $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
     if ($documentRoot === '') {
         throw new RuntimeException('Document root unavailable.');
     }
 
+    $configured = getenv('TETRISTEZA_DB_PATH');
+    if (is_string($configured) && trim($configured) !== '') {
+        return privateConfiguredPath(trim($configured), $documentRoot);
+    }
+
     $privateDir = dirname(rtrim($documentRoot, DIRECTORY_SEPARATOR)) . DIRECTORY_SEPARATOR . 'tetristeza-private';
     if (!is_dir($privateDir) && !mkdir($privateDir, 0700, true) && !is_dir($privateDir)) {
         throw new RuntimeException('Private storage unavailable.');
+    }
+    if (!chmod($privateDir, 0700)) {
+        throw new RuntimeException('Private storage permissions unavailable.');
     }
 
     return $privateDir . DIRECTORY_SEPARATOR . 'scores.sqlite';
