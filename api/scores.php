@@ -14,6 +14,8 @@ const MAX_NAME_CHARS = 8;
 const MAX_EMAIL_LENGTH = 254;
 const MAX_REQUEST_BYTES = 2048;
 const MAX_SCORE = 999999999;
+const MAX_SUBMISSION_ID_LENGTH = 64;
+const SUBMISSION_TTL_SECONDS = 900;
 
 function respond(int $status, array $payload): void
 {
@@ -41,8 +43,16 @@ function validPlayerName(string $name): bool
 {
     return $name !== ''
         && characterCount($name) <= MAX_NAME_CHARS
-        && preg_match('/[\\p{L}\\p{N}]/u', $name) === 1
-        && preg_match("/^[\\p{L}\\p{N} _.'’·-]+$/u", $name) === 1;
+        && preg_match('/[\p{L}\p{N}]/u', $name) === 1
+        && preg_match("/^[\p{L}\p{N} _.'’·-]+$/u", $name) === 1;
+}
+
+function validSubmissionId(string $submissionId): bool
+{
+    $length = strlen($submissionId);
+    return $length >= 16
+        && $length <= MAX_SUBMISSION_ID_LENGTH
+        && preg_match('/^[A-Za-z0-9_-]+$/D', $submissionId) === 1;
 }
 
 function sameOriginRequest(): bool
@@ -52,7 +62,7 @@ function sameOriginRequest(): bool
         return false;
     }
 
-    $expectedHost = preg_replace('/:\\d+$/', '', $host);
+    $expectedHost = preg_replace('/:\d+$/', '', $host);
     foreach (['HTTP_ORIGIN', 'HTTP_REFERER'] as $header) {
         if (empty($_SERVER[$header])) {
             continue;
@@ -131,6 +141,15 @@ function openDatabase(): PDO
         )'
     );
     $db->exec('CREATE INDEX IF NOT EXISTS scores_rank_idx ON scores(score DESC, created_at ASC, id ASC)');
+    $db->exec(
+        'CREATE TABLE IF NOT EXISTS score_submissions (
+            submission_id TEXT PRIMARY KEY,
+            accepted INTEGER NOT NULL CHECK (accepted IN (0, 1)),
+            position INTEGER NULL,
+            created_at INTEGER NOT NULL
+        )'
+    );
+    $db->exec('CREATE INDEX IF NOT EXISTS score_submissions_created_idx ON score_submissions(created_at)');
 
     if (is_file($path) && !chmod($path, 0600)) {
         throw new RuntimeException('Private storage permissions unavailable.');
@@ -214,6 +233,14 @@ if (!is_array($data)) {
     respond(400, ['ok' => false, 'error' => 'invalid_json']);
 }
 
+if (!array_key_exists('submissionId', $data) || !is_string($data['submissionId'])) {
+    respond(422, ['ok' => false, 'error' => 'invalid_submission']);
+}
+$submissionId = trim($data['submissionId']);
+if (!validSubmissionId($submissionId)) {
+    respond(422, ['ok' => false, 'error' => 'invalid_submission']);
+}
+
 if (!array_key_exists('name', $data) || !is_string($data['name'])) {
     respond(422, ['ok' => false, 'error' => 'invalid_name']);
 }
@@ -246,6 +273,27 @@ if ($score <= 0 || $score > MAX_SCORE) {
 try {
     $db->exec('BEGIN IMMEDIATE TRANSACTION');
 
+    $cleanup = $db->prepare('DELETE FROM score_submissions WHERE created_at < :cutoff');
+    $cleanup->execute([':cutoff' => $now - SUBMISSION_TTL_SECONDS]);
+
+    $replay = $db->prepare(
+        'SELECT accepted, position FROM score_submissions WHERE submission_id = :submission_id LIMIT 1'
+    );
+    $replay->execute([':submission_id' => $submissionId]);
+    $existingSubmission = $replay->fetch(PDO::FETCH_ASSOC);
+    if ($existingSubmission !== false) {
+        $position = $existingSubmission['position'] === null ? null : (int) $existingSubmission['position'];
+        $payload = [
+            'ok' => true,
+            'accepted' => (int) $existingSubmission['accepted'] === 1,
+            'position' => $position,
+            'scores' => publicScores($db),
+            'replayed' => true,
+        ];
+        $db->commit();
+        respond(200, $payload);
+    }
+
     $count = (int) $db->query('SELECT COUNT(*) FROM scores')->fetchColumn();
     $qualifies = $count < TOP_LIMIT;
 
@@ -257,8 +305,17 @@ try {
     }
 
     if (!$qualifies) {
-        $db->rollBack();
-        respond(200, ['ok' => true, 'accepted' => false, 'scores' => publicScores($db)]);
+        $record = $db->prepare(
+            'INSERT INTO score_submissions (submission_id, accepted, position, created_at)
+             VALUES (:submission_id, 0, NULL, :created_at)'
+        );
+        $record->execute([
+            ':submission_id' => $submissionId,
+            ':created_at' => $now,
+        ]);
+        $scores = publicScores($db);
+        $db->commit();
+        respond(200, ['ok' => true, 'accepted' => false, 'position' => null, 'scores' => $scores]);
     }
 
     $insert = $db->prepare('INSERT INTO scores (name, email, score, created_at) VALUES (:name, :email, :score, :created_at)');
@@ -283,6 +340,17 @@ try {
     $positionIndex = array_search((string) $newId, array_map('strval', $rankedIds), true);
     $position = $positionIndex === false ? null : $positionIndex + 1;
     $scores = publicScores($db);
+
+    $record = $db->prepare(
+        'INSERT INTO score_submissions (submission_id, accepted, position, created_at)
+         VALUES (:submission_id, :accepted, :position, :created_at)'
+    );
+    $record->execute([
+        ':submission_id' => $submissionId,
+        ':accepted' => $position === null ? 0 : 1,
+        ':position' => $position,
+        ':created_at' => $now,
+    ]);
 
     $db->commit();
 
