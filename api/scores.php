@@ -39,6 +39,7 @@ function validPlayerName(string $name): bool
 {
     return $name !== ''
         && characterCount($name) <= MAX_NAME_CHARS
+        && preg_match('/[\\p{L}\\p{N}]/u', $name) === 1
         && preg_match("/^[\\p{L}\\p{N} _.'’·-]+$/u", $name) === 1;
 }
 
@@ -171,7 +172,8 @@ if ($contentLength > MAX_REQUEST_BYTES) {
     respond(413, ['ok' => false, 'error' => 'request_too_large']);
 }
 
-$isHttps = !empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off';
+$forwardedProto = strtolower(trim(explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0]));
+$isHttps = (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') || $forwardedProto === 'https';
 if (!session_start([
     'cookie_httponly' => true,
     'cookie_samesite' => 'Strict',
