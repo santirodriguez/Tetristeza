@@ -8,19 +8,33 @@
   <strong>A tiny falling-block puzzler with neon colors and questionable emotional stability.</strong>
 </p>
 
+<p align="center">
+  <strong>🇺🇸 English</strong> &nbsp;·&nbsp;
+  <strong>🇦🇷 Español</strong> &nbsp;·&nbsp;
+  <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Catalonia.svg" alt="Catalan Senyera" height="14" /> <strong>Català</strong>
+</p>
+
 Tetristeza is a lightweight browser game built with plain HTML5 Canvas and vanilla JavaScript.
 
-No accounts. No ads. No analytics. No cloud. No package manager. The blocks are already dealing with enough.
-
-> **Play online:** the current v1.1 build is available at **https://santiagorodriguez.com/Tetristeza/**.
+No accounts. No ads. No analytics. No external cloud service. Just blocks, poor decisions, and now a scoreboard.
 
 ## Why
 
-I wanted a falling-block game that could live in a single HTML file, open quickly, and not turn “move some blocks around” into a software architecture conference.
+I wanted a lightweight falling-block game: open it, play it, close it. No launcher, no account, no dependency tree large enough to develop its own mood.
 
-Then I added particles, audio, Hold, Ghost, combos, back-to-back bonuses, and a mood system.
+Then I added Hold, Ghost, particles, actual moods, and a global Top 10. Minimalism remains a moving target.
 
-Scope control is a process.
+## Play
+
+**Online:** the current v1.1 build is available at **https://santiagorodriguez.com/Tetristeza/**.
+
+**Local:** clone or download the repository, open `index.html`, and press Start. Opening it directly from disk uses an isolated local Top 10 for testing; an HTTP(S) deployment uses the real server leaderboard.
+
+## Screenshot
+
+<p align="center">
+  <img src="assets/screenshots/screenshot-v1.1.png" alt="Tetristeza v1.1 gameplay" width="900" />
+</p>
 
 ## What it does
 
@@ -28,18 +42,12 @@ Scope control is a process.
 - **Hold**, **Next**, and **Ghost** piece support
 - Smooth movement with **DAS/ARR**, soft drop, and hard drop
 - **Scoring, combos, back-to-back bonuses, and levels**
+- **Global Top 10** with names up to 8 characters and an optional private email
 - Lightweight particles and minimal audio through the Web Audio API
 - Responsive keyboard and touch controls
-- English, Spanish (Argentina), and Catalan interface
-- Persistent language preference stored locally in the browser
+- Persistent language preference and personal best stored locally in the browser
 - HiDPI Canvas rendering
-- No framework, runtime dependency, build step, or suspiciously ambitious dependency tree
-
-## Screenshot
-
-<p align="center">
-  <img src="assets/screenshots/screenshot-v1.1.png" alt="Tetristeza v1.1 gameplay" width="900" />
-</p>
+- No framework, package manager, compiler, or runtime dependency for the game itself
 
 ## Controls
 
@@ -56,16 +64,6 @@ Scope control is a process.
 
 On touch devices, use the on-screen controls.
 
-## Play
-
-Play the current v1.1 build at **https://santiagorodriguez.com/Tetristeza/**.
-
-To run it locally:
-
-1. Clone or download this repository.
-2. Open `index.html` in a modern browser.
-3. Click or tap once before expecting the browser to make noise. Browsers have trust issues with autoplay, and in this case they are probably right.
-
 ## Scoring & Levels
 
 - **Single:** 100 × level
@@ -78,13 +76,11 @@ To run it locally:
 - The level increases every **10 lines**
 - Gravity accelerates down to a minimum interval of **120 ms**
 
-## Languages
+## Global Top 10
 
-- 🇺🇸 **English** — default
-- 🇦🇷 **Español (Argentina)**
-- **Català** — represented in the interface by the traditional Senyera
+At Game Over, a qualifying score can join the global Top 10 with a name of up to **8 characters** and an optional private email. Only the best ten survive; everyone else is politely forgotten by SQLite. Earlier scores win ties.
 
-The selected language is saved locally and can be changed without restarting the current game.
+It is intentionally an arcade leaderboard, not an esports anti-cheat department.
 
 ## Author
 
@@ -94,11 +90,9 @@ The selected language is saved locally and can be changed without restarting the
 
 ## Technical notes
 
-Tetristeza intentionally stays small. The interface, styles, localization, game logic, and rendering live in `index.html`, alongside a few static assets.
+The game stays in plain HTML/CSS/JavaScript. The leaderboard is isolated in `assets/js/leaderboard.js` with a single self-hosted `api/scores.php` endpoint backed by SQLite.
 
-It uses HTML5 Canvas, vanilla JavaScript, CSS, the Web Audio API, and `localStorage`. There is no framework, package manager, compiler, or runtime dependency.
-
-The v1.1 update adds localization, branding, responsive layout, touch-friendly controls, and accessibility polish without changing the core gameplay rules.
+The SQLite database lives outside the public document root by default. Set `TETRISTEZA_DB_PATH` only when a different private server path is needed.
 
 ## License
 
