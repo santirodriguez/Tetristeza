@@ -11,7 +11,7 @@ const MAX_NAME_CHARS = 8;
 const MAX_EMAIL_LENGTH = 254;
 const MAX_SCORE = 999999999;
 
-function respond(int $status, array $payload): never
+function respond(int $status, array $payload): void
 {
     http_response_code($status);
     echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -213,21 +213,18 @@ try {
     );
     $delete->execute();
 
-    $rankStmt = $db->prepare(
-        'SELECT position FROM (
-            SELECT id, ROW_NUMBER() OVER (ORDER BY score DESC, created_at ASC, id ASC) AS position
-            FROM scores
-        ) WHERE id = :id'
-    );
-    $rankStmt->execute([':id' => $newId]);
-    $position = $rankStmt->fetchColumn();
+    $rankedIds = $db->query(
+        'SELECT id FROM scores ORDER BY score DESC, created_at ASC, id ASC LIMIT ' . TOP_LIMIT
+    )->fetchAll(PDO::FETCH_COLUMN);
+    $positionIndex = array_search((string) $newId, array_map('strval', $rankedIds), true);
+    $position = $positionIndex === false ? null : $positionIndex + 1;
 
     $db->commit();
 
     respond(201, [
         'ok' => true,
-        'accepted' => $position !== false,
-        'position' => $position === false ? null : (int) $position,
+        'accepted' => $position !== null,
+        'position' => $position,
         'scores' => publicScores($db),
     ]);
 } catch (Throwable $error) {
