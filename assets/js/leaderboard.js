@@ -7,21 +7,21 @@
     en: {
       top: 'Top 10', newTop: 'New Top Score!', name: 'Name', email: 'Email · optional',
       emailNote: 'Private · never shown publicly', save: 'Save score', saving: 'Saving…',
-      unavailable: 'Top 10 unavailable', invalidName: 'Use a name of 1–8 characters.',
+      unavailable: 'Top 10 unavailable', invalidName: 'Use 1–8 letters or numbers; simple punctuation is OK.',
       invalidEmail: 'Enter a valid email or leave it blank.', saveFailed: 'Could not save the score.',
       displaced: 'The Top 10 changed before your score was saved.'
     },
     'es-AR': {
       top: 'Top 10', newTop: '¡Nuevo Top Score!', name: 'Nombre', email: 'Email · opcional',
       emailNote: 'Privado · nunca se muestra públicamente', save: 'Guardar puntaje', saving: 'Guardando…',
-      unavailable: 'Top 10 no disponible', invalidName: 'Usá un nombre de 1 a 8 caracteres.',
+      unavailable: 'Top 10 no disponible', invalidName: 'Usá 1–8 letras o números; se admite puntuación simple.',
       invalidEmail: 'Ingresá un email válido o dejalo vacío.', saveFailed: 'No se pudo guardar el puntaje.',
       displaced: 'El Top 10 cambió antes de guardar tu puntaje.'
     },
     ca: {
       top: 'Top 10', newTop: 'Nou Top Score!', name: 'Nom', email: 'Email · opcional',
       emailNote: 'Privat · mai no es mostra públicament', save: 'Desa la puntuació', saving: 'Desant…',
-      unavailable: 'Top 10 no disponible', invalidName: 'Fes servir un nom d’1 a 8 caràcters.',
+      unavailable: 'Top 10 no disponible', invalidName: 'Fes servir 1–8 lletres o números; s’admet puntuació simple.',
       invalidEmail: 'Introdueix un email vàlid o deixa’l buit.', saveFailed: 'No s’ha pogut desar la puntuació.',
       displaced: 'El Top 10 ha canviat abans de desar la puntuació.'
     }
@@ -63,6 +63,8 @@
 
   let requestId = 0;
   let lastGameOverScore = null;
+  let lastGameOverLanguage = null;
+  let submittedScore = null;
 
   function language() {
     const lang = document.documentElement.lang || 'en';
@@ -79,6 +81,7 @@
   }
 
   function qualifies(score, scores) {
+    if (score <= 0) return false;
     if (scores.length < 10) return true;
     return score > Number(scores[9]?.score || 0);
   }
@@ -102,7 +105,7 @@
 
       const name = document.createElement('span');
       name.className = 'leaderboard-name';
-      name.textContent = String(entry.name || '').slice(0, 32);
+      name.textContent = Array.from(String(entry.name || '')).slice(0, 8).join('');
 
       const score = document.createElement('span');
       score.className = 'leaderboard-score';
@@ -124,8 +127,9 @@
   }
 
   function validName(value) {
-    const length = Array.from(value.trim()).length;
-    return length >= 1 && length <= 8 && !/[\u0000-\u001f\u007f]/u.test(value);
+    const trimmed = value.trim();
+    const length = Array.from(trimmed).length;
+    return length >= 1 && length <= 8 && /^[\p{L}\p{N} _.'’·-]+$/u.test(trimmed);
   }
 
   function validEmail(value) {
@@ -133,7 +137,27 @@
     return value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   }
 
-  function buildForm(score, scores) {
+  async function loadScores() {
+    const options = {headers: {'Accept': 'application/json'}, credentials: 'same-origin'};
+    let timer = null;
+    let controller = null;
+
+    if (typeof AbortController === 'function') {
+      controller = new AbortController();
+      options.signal = controller.signal;
+      timer = setTimeout(() => controller.abort(), 5000);
+    }
+
+    try {
+      const response = await fetch(API_URL, options);
+      const result = await response.json();
+      return {response, result};
+    } finally {
+      if (timer !== null) clearTimeout(timer);
+    }
+  }
+
+  function buildForm(score) {
     const c = text();
     const form = document.createElement('form');
     form.className = 'leaderboard-form';
@@ -204,6 +228,7 @@
         const result = await response.json();
         if (!response.ok || !result?.ok) throw new Error('save_failed');
 
+        submittedScore = score;
         panel.replaceChildren(...renderRanking(Array.isArray(result.scores) ? result.scores : [], result.accepted ? result.position : null));
         if (!result.accepted) panel.appendChild(status(c.displaced));
       } catch {
@@ -216,23 +241,23 @@
     return form;
   }
 
-  async function showGameOverLeaderboard(force = false) {
+  async function showGameOverLeaderboard() {
     const score = parseScore();
-    if (!force && lastGameOverScore === score && !panel.hidden) return;
+    const currentLanguage = language();
     lastGameOverScore = score;
+    lastGameOverLanguage = currentLanguage;
     panel.hidden = false;
     panel.replaceChildren(status('…'));
     const currentRequest = ++requestId;
 
     try {
-      const response = await fetch(API_URL, {headers: {'Accept': 'application/json'}, credentials: 'same-origin'});
-      const result = await response.json();
+      const {response, result} = await loadScores();
       if (currentRequest !== requestId) return;
       if (!response.ok || !result?.ok || !Array.isArray(result.scores)) throw new Error('load_failed');
 
       const scores = result.scores;
       const nodes = [];
-      if (qualifies(score, scores)) nodes.push(buildForm(score, scores));
+      if (submittedScore !== score && qualifies(score, scores)) nodes.push(buildForm(score));
       nodes.push(...renderRanking(scores));
       panel.replaceChildren(...nodes);
     } catch {
@@ -245,11 +270,17 @@
     const isGameOver = GAME_OVER_TITLES.has(title.textContent.trim()) && overlay.getAttribute('aria-hidden') === 'false';
     if (isGameOver) {
       modal.classList.add('leaderboard-modal');
-      showGameOverLeaderboard(true);
+      const score = parseScore();
+      const currentLanguage = language();
+      if (panel.hidden || lastGameOverScore !== score || lastGameOverLanguage !== currentLanguage) {
+        showGameOverLeaderboard();
+      }
     } else {
       modal.classList.remove('leaderboard-modal');
       requestId += 1;
       lastGameOverScore = null;
+      lastGameOverLanguage = null;
+      submittedScore = null;
       panel.hidden = true;
       panel.replaceChildren();
     }
