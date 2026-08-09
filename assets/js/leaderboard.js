@@ -91,7 +91,9 @@
   let lastGameOverScore = null;
   let lastGameOverLanguage = null;
   let submittedScore = null;
+  let submissionId = null;
   let pendingSubmission = null;
+  let retryLockedSubmission = null;
   let localMemoryScores = [];
 
   function language() {
@@ -101,6 +103,19 @@
 
   function text() {
     return copy[language()];
+  }
+
+  function createSubmissionId() {
+    const cryptoApi = window.crypto;
+    if (cryptoApi && typeof cryptoApi.randomUUID === 'function') {
+      return cryptoApi.randomUUID();
+    }
+    if (cryptoApi && typeof cryptoApi.getRandomValues === 'function') {
+      const bytes = new Uint8Array(16);
+      cryptoApi.getRandomValues(bytes);
+      return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+    }
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 14)}-${Math.random().toString(36).slice(2, 14)}`;
   }
 
   function parseScore() {
@@ -267,7 +282,7 @@
     }
   }
 
-  async function submitScore(name, email, score) {
+  async function submitScore(name, email, score, operationId) {
     if (LOCAL_TEST) {
       return {response: {ok: true}, result: saveLocalScore(name, score)};
     }
@@ -276,7 +291,7 @@
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
       credentials: 'same-origin',
-      body: JSON.stringify({name, email, score})
+      body: JSON.stringify({name, email, score, submissionId: operationId})
     };
     let timer = null;
     let controller = null;
@@ -355,16 +370,22 @@
       const submitSession = gameOverSessionId;
       if (pendingSubmission?.sessionId === submitSession && pendingSubmission.score === score) return;
 
-      pendingSubmission = {score, sessionId: submitSession};
+      if (!submissionId) submissionId = createSubmissionId();
+      const operationId = submissionId;
+      retryLockedSubmission = null;
+      pendingSubmission = {score, sessionId: submitSession, submissionId: operationId};
       save.disabled = true;
       save.textContent = text().saving;
+      let responseReceived = false;
 
       try {
-        const {response, result} = await submitScore(name, email, score);
+        const {response, result} = await submitScore(name, email, score, operationId);
+        responseReceived = true;
         if (!gameOverActive || submitSession !== gameOverSessionId) return;
         if (!response.ok || !result?.ok) throw new Error('save_failed');
 
         pendingSubmission = null;
+        retryLockedSubmission = null;
         submittedScore = score;
         const nodes = [];
         const notice = localTestNotice();
@@ -376,6 +397,10 @@
         if (!gameOverActive || submitSession !== gameOverSessionId) return;
         pendingSubmission = null;
         submittedScore = null;
+        const ambiguousFailure = !responseReceived;
+        retryLockedSubmission = ambiguousFailure ? {score, sessionId: submitSession} : null;
+        nameInput.disabled = ambiguousFailure;
+        emailInput.disabled = ambiguousFailure;
         error.textContent = text().saveFailed;
         save.disabled = false;
         save.textContent = text().save;
@@ -424,8 +449,9 @@
       const score = parseScore();
       const currentLanguage = language();
       const submissionPending = pendingSubmission?.sessionId === gameOverSessionId && pendingSubmission.score === score;
+      const retryLocked = retryLockedSubmission?.sessionId === gameOverSessionId && retryLockedSubmission.score === score;
 
-      if (submissionPending) {
+      if (submissionPending || retryLocked) {
         lastGameOverScore = score;
         lastGameOverLanguage = currentLanguage;
         return;
@@ -444,7 +470,9 @@
       lastGameOverScore = null;
       lastGameOverLanguage = null;
       submittedScore = null;
+      submissionId = null;
       pendingSubmission = null;
+      retryLockedSubmission = null;
       panel.hidden = true;
       panel.replaceChildren();
     }
