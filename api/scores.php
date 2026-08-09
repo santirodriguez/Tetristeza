@@ -270,8 +270,10 @@ if ($score <= 0 || $score > MAX_SCORE) {
     respond(422, ['ok' => false, 'error' => 'invalid_score']);
 }
 
+$transactionStarted = false;
 try {
     $db->exec('BEGIN IMMEDIATE TRANSACTION');
+    $transactionStarted = true;
 
     $cleanup = $db->prepare('DELETE FROM score_submissions WHERE created_at < :cutoff');
     $cleanup->execute([':cutoff' => $now - SUBMISSION_TTL_SECONDS]);
@@ -290,7 +292,8 @@ try {
             'scores' => publicScores($db),
             'replayed' => true,
         ];
-        $db->commit();
+        $db->exec('COMMIT');
+        $transactionStarted = false;
         respond(200, $payload);
     }
 
@@ -314,7 +317,8 @@ try {
             ':created_at' => $now,
         ]);
         $scores = publicScores($db);
-        $db->commit();
+        $db->exec('COMMIT');
+        $transactionStarted = false;
         respond(200, ['ok' => true, 'accepted' => false, 'position' => null, 'scores' => $scores]);
     }
 
@@ -352,7 +356,8 @@ try {
         ':created_at' => $now,
     ]);
 
-    $db->commit();
+    $db->exec('COMMIT');
+    $transactionStarted = false;
 
     respond(201, [
         'ok' => true,
@@ -361,8 +366,12 @@ try {
         'scores' => $scores,
     ]);
 } catch (Throwable $error) {
-    if ($db->inTransaction()) {
-        $db->rollBack();
+    if ($transactionStarted) {
+        try {
+            $db->exec('ROLLBACK');
+        } catch (Throwable $rollbackError) {
+            // Keep the public response generic even if rollback reporting fails.
+        }
     }
     respond(503, ['ok' => false, 'error' => 'leaderboard_unavailable']);
 }
