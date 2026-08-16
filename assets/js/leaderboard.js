@@ -5,7 +5,6 @@
   const REQUEST_TIMEOUT_MS = 5000;
   const LOCAL_TEST = window.location.protocol === 'file:';
   const LOCAL_STORAGE_KEY = 'tetristeza:test-top10:v1';
-  const GAME_OVER_TITLES = new Set(['Game Over', 'Fin del juego', 'Fi de la partida']);
   const copy = {
     en: {
       top: 'Top 10', subtitle: 'Brief victories over Tetristeza, ranked.',
@@ -438,7 +437,7 @@
   }
 
   function sync() {
-    const isGameOver = GAME_OVER_TITLES.has(title.textContent.trim()) && overlay.getAttribute('aria-hidden') === 'false';
+    const isGameOver = overlay.dataset.state === 'gameOver' && overlay.getAttribute('aria-hidden') === 'false';
     if (isGameOver) {
       if (!gameOverActive) {
         gameOverActive = true;
@@ -479,6 +478,6 @@
   }
 
   new MutationObserver(sync).observe(title, {childList: true, characterData: true, subtree: true});
-  new MutationObserver(sync).observe(overlay, {attributes: true, attributeFilter: ['aria-hidden', 'style']});
+  new MutationObserver(sync).observe(overlay, {attributes: true, attributeFilter: ['aria-hidden', 'style', 'data-state']});
   sync();
 })();
