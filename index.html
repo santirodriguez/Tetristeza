@@ -86,6 +86,7 @@
     kbd{font:inherit;font-size:.88em;border:1px solid #30394a;border-bottom-width:2px;border-radius:5px;padding:.05em .32em;background:#111722;color:#dbe4f2}
     @media (max-width:700px){
       .wrap{padding:10px max(8px,env(safe-area-inset-right)) 16px max(8px,env(safe-area-inset-left))}
+      main.wrap{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
       .nav .wrap{padding-top:max(5px,env(safe-area-inset-top));padding-bottom:5px;padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
       .brand-row{gap:8px;min-height:42px}
       .brand img{height:40px;max-width:calc(100vw - 156px)}
@@ -96,7 +97,7 @@
       .section-title{margin-bottom:8px;font-size:18px}
       .controls-copy{display:none}
       .grid{margin-top:0;gap:9px}
-      #game{width:min(100%,max(250px,calc((100dvh - 170px)/2)))}
+      #game{width:min(100%,calc((100dvh - 160px - env(safe-area-inset-bottom))/2))}
       .control-card{grid-template-columns:1fr;padding:10px}
       .actions{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
       .actions .control{padding:9px 5px;font-size:12px;min-height:44px}
@@ -104,6 +105,7 @@
       .hud .box{padding:8px 5px}
       .previews{gap:8px}
       #next,#hold{max-width:88px}
+      .touch-wrap{position:fixed;left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));z-index:60;margin:0;padding:6px;background:rgba(15,19,27,.94);border:1px solid #222a3a;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
       .touch{gap:5px}
       .touch .control{min-height:48px;font-size:16px}
       .help{display:none}
@@ -111,6 +113,8 @@
       .footer{margin-top:16px;padding:16px max(10px,env(safe-area-inset-left)) max(16px,env(safe-area-inset-bottom))}
     }
     @media (max-width:560px){
+      main.wrap{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
+      #game{width:min(100%,calc((100dvh - 204px - env(safe-area-inset-bottom))/2))}
       .hud{grid-template-columns:repeat(3,minmax(0,1fr))}
       .hud .box:nth-child(4),.hud .box:nth-child(5){grid-column:span 1}
       .actions{grid-template-columns:repeat(2,minmax(0,1fr))}
