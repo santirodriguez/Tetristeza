@@ -67,13 +67,13 @@
     .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
     .buttons{display:flex;flex-wrap:wrap;gap:8px}
     .buttons.center{justify-content:center}
-    button.control{appearance:none;border:1px solid #293246;background:#121827;color:var(--text);padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:650;letter-spacing:.01em;transition:transform .12s ease,background .2s ease,border-color .2s ease;user-select:none;touch-action:manipulation}
+    button.control{appearance:none;border:1px solid #293246;background:#121827;color:var(--text);padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:650;letter-spacing:.01em;transition:transform .12s ease,background .2s ease,border-color .2s ease;user-select:none;touch-action:manipulation;min-width:0}
     button.control:hover{background:#172036;border-color:#38445e}
     button.control:active{transform:translateY(1px)}
     button.btn-accent{background:linear-gradient(180deg,#1b2639,#151a28);border-color:#36506c;box-shadow:inset 0 1px 0 rgba(34,211,238,.08)}
     button.btn-accent:hover{background:linear-gradient(180deg,#213149,#171d2d);border-color:#44708f}
     .touch-wrap{grid-area:touch;margin-top:0}
-    .touch{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+    .touch{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) minmax(88px,1.4fr);gap:6px}
     .touch .control{padding-inline:5px;min-height:48px}
     .help{color:var(--muted);font-size:12px;margin:8px 0 0}
     .about{margin-top:18px}
@@ -114,6 +114,7 @@
       .hud{grid-template-columns:repeat(3,minmax(0,1fr))}
       .hud .box:nth-child(4),.hud .box:nth-child(5){grid-column:span 1}
       .actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .touch{grid-template-columns:repeat(3,minmax(0,1fr))}
     }
     @media (max-width:339px){
       .brand img{height:36px;max-width:calc(100vw - 142px)}
@@ -219,7 +220,7 @@
     function fitHiDPI(c){const dpr=Math.max(1,window.devicePixelRatio||1),rect=c.getBoundingClientRect(),w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));if(c.width!==w||c.height!==h){c.width=w;c.height=h}const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);return{ctx,dpr}}
     let {ctx,dpr}=fitHiDPI(canvas),nFit=fitHiDPI(nextCanvas),nctx=nFit.ctx,hFit=fitHiDPI(holdCanvas),hctx=hFit.ctx;
 
-    const COLS=10,ROWS=20,COLORS={I:'#22d3ee',J:'#60a5fa',L:'#f59e0b',O:'#facc15',S:'#34d399',T:'#a78bfa',Z:'#fb7185'},SHAPES={I:[[1,1,1,1]],J:[[1,0,0],[1,1,1]],L:[[0,0,1],[1,1,1]],O:[[1,1],[1,1]],S:[[0,1,1],[1,1,0]],T:[[0,1,0],[1,1,1]],Z:[[1,1,0],[0,1,1]]},LOCK_DELAY=520,DAS=160,ARR=45,DROP_BASE=1000,MIN_DROP=120;
+    const COLS=10,ROWS=20,COLORS={I:'#22d3ee',J:'#60a5fa',L:'#f59e0b',O:'#facc15',S:'#34d399',T:'#a78bfa',Z:'#fb7185'},SHAPES={I:[[1,1,1,1]],J:[[1,0,0],[1,1,1]],L:[[0,0,1],[1,1,1]],O:[[1,1],[1,1]],S:[[0,1,1],[1,1,0]],T:[[0,1,0],[1,1,1]],Z:[[1,1,0],[0,1,1]]},LOCK_DELAY=520,DAS=160,ARR=45,SOFT_DROP_INTERVAL=16,DROP_BASE=1000,MIN_DROP=120;
     function createMatrix(w,h){return Array.from({length:h},()=>Array(w).fill(0))}function clone(m){return m.map(r=>r.slice())}
     function rotateCW(matrix){const N=matrix.length,M=matrix[0].length,res=Array.from({length:M},()=>Array(N).fill(0));for(let y=0;y<N;y++)for(let x=0;x<M;x++)res[x][N-1-y]=matrix[y][x];return res}
     let emojiFlash=null;function flashEmoji(ch,ms=1000){emojiFlash={ch,t0:performance.now(),dur:ms}}
@@ -227,6 +228,7 @@
     function piece(type){const matrix=clone(SHAPES[type]);return{type,color:COLORS[type],matrix,x:(COLS>>1)-Math.ceil(matrix[0].length/2),y:-1}}
     function collide(brd,p){for(let y=0;y<p.matrix.length;y++)for(let x=0;x<p.matrix[y].length;x++){if(!p.matrix[y][x])continue;const nx=p.x+x,ny=p.y+y;if(nx<0||nx>=COLS||ny>=ROWS)return true;if(ny>=0&&brd[ny][nx])return true}return false}
     function merge(brd,p){for(let y=0;y<p.matrix.length;y++)for(let x=0;x<p.matrix[y].length;x++)if(p.matrix[y][x]){const nx=p.x+x,ny=p.y+y;if(ny>=0)brd[ny][nx]=p.color}}
+    function locksAboveBoard(p){for(let y=0;y<p.matrix.length;y++)for(let x=0;x<p.matrix[y].length;x++)if(p.matrix[y][x]&&p.y+y<0)return true;return false}
 
     const particles=[];function addLineParticles(row,mode='spark'){for(let x=0;x<COLS;x++){if(!board[row][x])continue;for(let i=0;i<5;i++)particles.push({x:x+.5,y:row+.5,vx:(Math.random()-.5)*.18,vy:mode==='spark'?(-Math.random()*.35-.06):(Math.random()*.28+.02),life:1,color:board[row][x],kind:mode})}}
     function addImpactParticles(px,py,color){for(let i=0;i<24;i++)particles.push({x:px,y:py,vx:(Math.random()-.5)*.5,vy:-Math.random()*.6,life:1,color,kind:'spark'})}
@@ -255,13 +257,13 @@
     function rotatePiece(){if(!current)return;const rotated=rotateCW(current.matrix),kicks=[0,-1,1,-2,2];for(const k of kicks){const np={...current,matrix:rotated,x:current.x+k};if(!collide(board,np)){current.matrix=rotated;current.x+=k;tone(540,.05,'triangle',.02);if(grounded)groundTimer=0;return}}}
     function softDrop(){if(current&&tryMove(0,1)){score++;scoreEl.textContent=String(score);checkMilestone()}}
     function hardDrop(){if(!current)return;let dist=0;while(!collide(board,{...current,y:current.y+1})){current.y++;dist++}score+=dist*2;scoreEl.textContent=String(score);checkMilestone();addImpactParticles(current.x+current.matrix[0].length/2,current.y+current.matrix.length+.1,current.color);tone(720,.05,'square',.03);lockNow()}
-    function lockNow(){merge(board,current);sweep();spawn();grounded=false;groundTimer=0;canHold=true}
+    function lockNow(){const toppedOut=locksAboveBoard(current);merge(board,current);if(toppedOut){current=null;grounded=false;groundTimer=0;drawBoard();gameOver();return}sweep();spawn();grounded=false;groundTimer=0;canHold=true}
     function doHold(){if(!current||!canHold)return;if(!hold){hold={...current,matrix:clone(current.matrix)};spawn()}else{const tmp=hold;hold={...current,matrix:clone(current.matrix)};current={...tmp};current.x=(COLS>>1)-Math.ceil(current.matrix[0].length/2);current.y=-1;if(collide(board,current)){gameOver();return}}drawMini(holdCanvas,hctx,hold.matrix,hold.color);canHold=false;tone(500,.05,'sine',.02)}
-    function update(time=0){if(!running||paused)return;const dt=time-lastTime;lastTime=time;dropCounter+=dt;updateParticles(dt);if(mood>0)mood=Math.max(0,mood-dt*.01);if(mood<0)mood=Math.min(0,mood+dt*.008);updateMoodLabel();handleRepeats();const touching=collide(board,{...current,y:current.y+1});if(touching){if(!grounded){grounded=true;groundTimer=0}groundTimer+=dt;if(groundTimer>=LOCK_DELAY)lockNow()}else{grounded=false;if(dropCounter>dropInterval){tryMove(0,1);dropCounter=0}}drawBoard();rafId=requestAnimationFrame(update)}
+    function update(time=0){if(!running||paused)return;const dt=time-lastTime;lastTime=time;dropCounter+=dt;updateParticles(dt);if(mood>0)mood=Math.max(0,mood-dt*.01);if(mood<0)mood=Math.min(0,mood+dt*.008);updateMoodLabel();handleRepeats(dt);const touching=collide(board,{...current,y:current.y+1});if(touching){if(!grounded){grounded=true;groundTimer=0}groundTimer+=dt;if(groundTimer>=LOCK_DELAY)lockNow()}else{grounded=false;if(dropCounter>dropInterval){tryMove(0,1);dropCounter=0}}drawBoard();rafId=requestAnimationFrame(update)}
 
-    const keys={left:false,right:false,down:false};let nextMoveL=0,nextMoveR=0,heldL=false,heldR=false;
-    function clearKeys(){keys.left=keys.right=keys.down=false;heldL=heldR=false}
-    function handleRepeats(){const now=performance.now();if(keys.left){if(!heldL){tryMove(-1,0);heldL=true;nextMoveL=now+DAS}else if(now>=nextMoveL){tryMove(-1,0);nextMoveL=now+ARR}}else heldL=false;if(keys.right){if(!heldR){tryMove(1,0);heldR=true;nextMoveR=now+DAS}else if(now>=nextMoveR){tryMove(1,0);nextMoveR=now+ARR}}else heldR=false;if(keys.down)softDrop()}
+    const keys={left:false,right:false,down:false};let nextMoveL=0,nextMoveR=0,heldL=false,heldR=false,softDropCounter=0;
+    function clearKeys(){keys.left=keys.right=keys.down=false;heldL=heldR=false;softDropCounter=0}
+    function handleRepeats(dt){const now=performance.now();if(keys.left){if(!heldL){tryMove(-1,0);heldL=true;nextMoveL=now+DAS}else if(now>=nextMoveL){tryMove(-1,0);nextMoveL=now+ARR}}else heldL=false;if(keys.right){if(!heldR){tryMove(1,0);heldR=true;nextMoveR=now+DAS}else if(now>=nextMoveR){tryMove(1,0);nextMoveR=now+ARR}}else heldR=false;if(keys.down){softDropCounter+=dt;while(softDropCounter>=SOFT_DROP_INTERVAL){softDrop();softDropCounter-=SOFT_DROP_INTERVAL}}else softDropCounter=0}
 
     function updateMuteButton(){muteIcon.textContent=audio.enabled?'🔈':'🔇';muteLabel.textContent=t(audio.enabled?'mute':'unmute')}
     function showOverlay(title,msg,primary=t('resume'),secondary=t('reset'),emoji=null){oTitle.textContent=title;oMsg.textContent=msg;oPrimary.textContent=primary;oSecondary.textContent=secondary;if(emoji){oEmoji.textContent=emoji;oEmoji.style.display='block';oEmoji.setAttribute('aria-hidden','false')}else{oEmoji.style.display='none';oEmoji.setAttribute('aria-hidden','true')}overlay.style.display='grid';overlay.setAttribute('aria-hidden','false')}
@@ -272,7 +274,7 @@
 
     window.addEventListener('resize',()=>{({ctx,dpr}=fitHiDPI(canvas));nFit=fitHiDPI(nextCanvas);nctx=nFit.ctx;hFit=fitHiDPI(holdCanvas);hctx=hFit.ctx;drawBoard();drawMini(nextCanvas,nctx,next.matrix,next.color);drawMini(holdCanvas,hctx,hold?.matrix,hold?.color)});
     window.addEventListener('blur',clearKeys);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearKeys()});
-    document.addEventListener('keydown',e=>{if(!running)return;const toggleKey=e.code==='KeyP'||e.code==='KeyG'||e.code==='KeyM';if(toggleKey&&e.repeat)return;switch(e.code){case'ArrowLeft':e.preventDefault();keys.left=true;break;case'ArrowRight':e.preventDefault();keys.right=true;break;case'ArrowDown':e.preventDefault();keys.down=true;break;case'ArrowUp':e.preventDefault();rotatePiece();break;case'Space':e.preventDefault();hardDrop();break;case'KeyC':e.preventDefault();doHold();break;case'KeyP':e.preventDefault();togglePause();break;case'KeyG':e.preventDefault();showGhost=!showGhost;break;case'KeyM':e.preventDefault();audio.enabled=!audio.enabled;updateMuteButton();break}});
+    document.addEventListener('keydown',e=>{if(!running)return;const toggleKey=e.code==='KeyP'||e.code==='KeyG'||e.code==='KeyM';if(toggleKey&&e.repeat)return;const gameplayKey=e.code==='ArrowLeft'||e.code==='ArrowRight'||e.code==='ArrowDown'||e.code==='ArrowUp'||e.code==='Space'||e.code==='KeyC';if(paused&&gameplayKey){e.preventDefault();return}switch(e.code){case'ArrowLeft':e.preventDefault();keys.left=true;break;case'ArrowRight':e.preventDefault();keys.right=true;break;case'ArrowDown':e.preventDefault();keys.down=true;break;case'ArrowUp':e.preventDefault();rotatePiece();break;case'Space':e.preventDefault();hardDrop();break;case'KeyC':e.preventDefault();doHold();break;case'KeyP':e.preventDefault();togglePause();break;case'KeyG':e.preventDefault();showGhost=!showGhost;break;case'KeyM':e.preventDefault();audio.enabled=!audio.enabled;updateMuteButton();break}});
     document.addEventListener('keyup',e=>{if(e.code==='ArrowLeft')keys.left=false;if(e.code==='ArrowRight')keys.right=false;if(e.code==='ArrowDown')keys.down=false});
     document.querySelectorAll('[data-act]').forEach(btn=>btn.addEventListener('click',()=>{if(!running||paused)return;const act=btn.dataset.act;if(act==='left')tryMove(-1,0);if(act==='right')tryMove(1,0);if(act==='down')softDrop();if(act==='rotate')rotatePiece();if(act==='drop')hardDrop();if(act==='hold')doHold()}));
     document.querySelectorAll('.lang-btn').forEach(btn=>btn.addEventListener('click',()=>setLanguage(btn.dataset.lang)));
