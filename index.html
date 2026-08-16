@@ -289,7 +289,7 @@
 
     const keys={left:false,right:false,down:false};let nextMoveL=0,nextMoveR=0,heldL=false,heldR=false,softDropCounter=0;
     function clearKeys(){keys.left=keys.right=keys.down=false;heldL=heldR=false;softDropCounter=0}
-    function handleRepeats(dt){const now=performance.now();if(keys.left){if(!heldL){tryMove(-1,0);heldL=true;nextMoveL=now+DAS}else if(now>=nextMoveL){tryMove(1*-1,0);nextMoveL=now+ARR}}else heldL=false;if(keys.right){if(!heldR){tryMove(1,0);heldR=true;nextMoveR=now+DAS}else if(now>=nextMoveR){tryMove(1,0);nextMoveR=now+ARR}}else heldR=false;if(keys.down){softDropCounter+=dt;while(softDropCounter>=SOFT_DROP_INTERVAL){softDrop();softDropCounter-=SOFT_DROP_INTERVAL}}else softDropCounter=0}
+    function handleRepeats(dt){const now=performance.now();if(keys.left){if(!heldL){tryMove(-1,0);heldL=true;nextMoveL=now+DAS}else if(now>=nextMoveL){tryMove(-1,0);nextMoveL=now+ARR}}else heldL=false;if(keys.right){if(!heldR){tryMove(1,0);heldR=true;nextMoveR=now+DAS}else if(now>=nextMoveR){tryMove(1,0);nextMoveR=now+ARR}}else heldR=false;if(keys.down){softDropCounter+=dt;while(softDropCounter>=SOFT_DROP_INTERVAL){softDrop();softDropCounter-=SOFT_DROP_INTERVAL}}else softDropCounter=0}
 
     function setBackgroundInert(value){for(const region of backgroundRegions)region.inert=value}
     function updateActionButtons(){startBtn.disabled=running;pauseBtn.disabled=!running}
