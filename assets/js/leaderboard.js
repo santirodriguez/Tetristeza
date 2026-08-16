@@ -5,7 +5,6 @@
   const REQUEST_TIMEOUT_MS = 5000;
   const LOCAL_TEST = window.location.protocol === 'file:';
   const LOCAL_STORAGE_KEY = 'tetristeza:test-top10:v1';
-  const GAME_OVER_TITLES = new Set(['Game Over', 'Fin del juego', 'Fi de la partida']);
   const copy = {
     en: {
       top: 'Top 10', subtitle: 'Brief victories over Tetristeza, ranked.',
@@ -75,10 +74,9 @@
 
   const overlay = document.getElementById('overlay');
   const modal = overlay?.querySelector('.modal');
-  const title = document.getElementById('overlay-title');
   const scoreEl = document.getElementById('score');
   const buttonRow = modal?.querySelector('.buttons.center');
-  if (!overlay || !modal || !title || !scoreEl || !buttonRow) return;
+  if (!overlay || !modal || !scoreEl || !buttonRow) return;
 
   const panel = document.createElement('div');
   panel.className = 'leaderboard-panel';
@@ -390,7 +388,8 @@
         const nodes = [];
         const notice = localTestNotice();
         if (notice) nodes.push(notice);
-        nodes.push(...renderRanking(Array.isArray(result.scores) ? result.scores : [], result.accepted ? result.position : null));
+        const highlightPosition = result.accepted && !result.replayed ? result.position : null;
+        nodes.push(...renderRanking(Array.isArray(result.scores) ? result.scores : [], highlightPosition));
         if (!result.accepted) nodes.push(status(text().displaced));
         panel.replaceChildren(...nodes);
       } catch {
@@ -438,7 +437,7 @@
   }
 
   function sync() {
-    const isGameOver = GAME_OVER_TITLES.has(title.textContent.trim()) && overlay.getAttribute('aria-hidden') === 'false';
+    const isGameOver = overlay.dataset.state === 'gameOver' && overlay.getAttribute('aria-hidden') === 'false';
     if (isGameOver) {
       if (!gameOverActive) {
         gameOverActive = true;
@@ -478,7 +477,7 @@
     }
   }
 
-  new MutationObserver(sync).observe(title, {childList: true, characterData: true, subtree: true});
-  new MutationObserver(sync).observe(overlay, {attributes: true, attributeFilter: ['aria-hidden', 'style']});
+  new MutationObserver(sync).observe(document.documentElement, {attributes: true, attributeFilter: ['lang']});
+  new MutationObserver(sync).observe(overlay, {attributes: true, attributeFilter: ['aria-hidden', 'style', 'data-state']});
   sync();
 })();
