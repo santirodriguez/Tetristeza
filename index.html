@@ -120,11 +120,22 @@
       .actions{grid-template-columns:repeat(2,minmax(0,1fr))}
       .touch{grid-template-columns:repeat(3,minmax(0,1fr))}
     }
-    @media (hover:none) and (pointer:coarse) and (orientation:landscape){
-      body.game-active main.wrap{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
-      #game{width:min(100%,calc((100dvh - 196px - env(safe-area-inset-bottom))/2));min-width:0}
-      body.game-active .touch-wrap{position:fixed;left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));z-index:60;margin:0;padding:6px;background:rgba(15,19,27,.94);border:1px solid #222a3a;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
-      body.game-active .touch{grid-template-columns:repeat(5,minmax(0,1fr)) minmax(88px,1.4fr);gap:5px}
+    @media (max-width:560px) and (max-height:560px) and (orientation:portrait){
+      body.game-active .nav{display:none}
+      body.game-active main.wrap{padding-top:6px}
+      body.game-active #game-section{padding:6px}
+      body.game-active .section-title{display:none}
+      body.game-active #game{width:min(100%,calc((100dvh - 156px - env(safe-area-inset-bottom))/2))}
+    }
+    @media (any-pointer:coarse) and (orientation:landscape) and (max-height:600px){
+      body.game-active .nav{display:none}
+      body.game-active main.wrap{padding:6px calc(194px + env(safe-area-inset-right)) 6px max(6px,env(safe-area-inset-left))}
+      body.game-active #game-section{padding:6px}
+      body.game-active .section-title,body.game-active .controls-copy{display:none}
+      body.game-active .grid{margin-top:0;gap:6px}
+      body.game-active #game{width:min(100%,calc((100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))/2));min-width:0}
+      body.game-active .touch-wrap{position:fixed;left:auto;right:max(8px,env(safe-area-inset-right));top:max(8px,env(safe-area-inset-top));bottom:max(8px,env(safe-area-inset-bottom));width:180px;z-index:60;margin:0;padding:6px;background:rgba(15,19,27,.94);border:1px solid #222a3a;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+      body.game-active .touch{height:100%;grid-template-columns:repeat(2,minmax(0,1fr));align-content:center;gap:6px}
       body.game-active .touch .control{min-height:48px;font-size:16px}
       body.game-active .help{display:none}
     }
