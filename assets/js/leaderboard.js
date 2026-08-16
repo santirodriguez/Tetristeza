@@ -34,7 +34,7 @@
       empty: 'Encara ningú ha sobreviscut a la Tetristeza.', name: 'Nom', email: 'Email · opcional',
       emailNote: 'Privat · mai no es mostra públicament', localEmailNote: 'Prova local · l’email no es desa',
       localTest: 'Prova local · aquest Top 10 només es desa en aquest navegador.',
-      save: 'Desa la puntuació', saving: 'Desant…', unavailable: 'Top 10 unavailable',
+      save: 'Desa la puntuació', saving: 'Desant…', unavailable: 'Top 10 no disponible',
       invalidName: 'Fes servir 1–8 lletres o números; s’admet puntuació simple.',
       invalidEmail: 'Introdueix un email vàlid o deixa’l buit.', saveFailed: 'No s’ha pogut desar la puntuació.',
       displaced: 'El Top 10 ha canviat abans de desar la puntuació.'
