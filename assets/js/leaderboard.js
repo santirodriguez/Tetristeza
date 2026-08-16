@@ -34,7 +34,7 @@
       empty: 'Encara ningú ha sobreviscut a la Tetristeza.', name: 'Nom', email: 'Email · opcional',
       emailNote: 'Privat · mai no es mostra públicament', localEmailNote: 'Prova local · l’email no es desa',
       localTest: 'Prova local · aquest Top 10 només es desa en aquest navegador.',
-      save: 'Desa la puntuació', saving: 'Desant…', unavailable: 'Top 10 no disponible',
+      save: 'Desa la puntuació', saving: 'Desant…', unavailable: 'Top 10 unavailable',
       invalidName: 'Fes servir 1–8 lletres o números; s’admet puntuació simple.',
       invalidEmail: 'Introdueix un email vàlid o deixa’l buit.', saveFailed: 'No s’ha pogut desar la puntuació.',
       displaced: 'El Top 10 ha canviat abans de desar la puntuació.'
@@ -74,10 +74,9 @@
 
   const overlay = document.getElementById('overlay');
   const modal = overlay?.querySelector('.modal');
-  const title = document.getElementById('overlay-title');
   const scoreEl = document.getElementById('score');
   const buttonRow = modal?.querySelector('.buttons.center');
-  if (!overlay || !modal || !title || !scoreEl || !buttonRow) return;
+  if (!overlay || !modal || !scoreEl || !buttonRow) return;
 
   const panel = document.createElement('div');
   panel.className = 'leaderboard-panel';
@@ -389,7 +388,8 @@
         const nodes = [];
         const notice = localTestNotice();
         if (notice) nodes.push(notice);
-        nodes.push(...renderRanking(Array.isArray(result.scores) ? result.scores : [], result.accepted ? result.position : null));
+        const highlightPosition = result.accepted && !result.replayed ? result.position : null;
+        nodes.push(...renderRanking(Array.isArray(result.scores) ? result.scores : [], highlightPosition));
         if (!result.accepted) nodes.push(status(text().displaced));
         panel.replaceChildren(...nodes);
       } catch {
@@ -477,7 +477,7 @@
     }
   }
 
-  new MutationObserver(sync).observe(title, {childList: true, characterData: true, subtree: true});
+  new MutationObserver(sync).observe(document.documentElement, {attributes: true, attributeFilter: ['lang']});
   new MutationObserver(sync).observe(overlay, {attributes: true, attributeFilter: ['aria-hidden', 'style', 'data-state']});
   sync();
 })();
