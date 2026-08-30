@@ -31,7 +31,7 @@
     button{font:inherit}
     button{-webkit-tap-highlight-color:transparent}
     button:focus-visible,a:focus-visible,#game:focus-visible{outline:3px solid rgba(34,211,238,.65);outline-offset:3px}
-    .wrap{max-width:1100px;margin:0 auto;padding:18px 24px}
+    .wrap{max-width:1040px;margin:0 auto;padding:18px 24px}
     .nav{z-index:10;background:linear-gradient(180deg,rgba(18,22,34,.9),rgba(18,22,34,.58));border-bottom:1px solid var(--border)}
     .nav .wrap{padding-top:max(8px,env(safe-area-inset-top));padding-bottom:8px;padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,env(safe-area-inset-right))}
     .brand-row{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:46px}
@@ -43,18 +43,20 @@
     .lang-btn:active{transform:translateY(1px)}
     .lang-btn[aria-pressed="true"]{border-color:var(--accent-2);box-shadow:0 0 0 1px rgba(34,211,238,.22),0 0 18px rgba(34,211,238,.16);background:#132033}
     .senyera{width:25px;height:17px;border-radius:2px;box-shadow:0 0 0 1px rgba(255,255,255,.18);background:repeating-linear-gradient(to bottom,#f7d117 0,#f7d117 11.111%,#c8102e 11.111%,#c8102e 22.222%)}
-    .tagline{display:none;color:var(--muted);margin:1px 0 0;font-size:12px}
     .card{background:linear-gradient(180deg,var(--card),var(--card-2));border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
-    .section-title{margin:0 0 12px;font-size:clamp(18px,3.5vw,22px)}
+    .section-title{margin:0 0 10px;font-size:clamp(18px,3.5vw,22px)}
     .muted{color:var(--muted)}
-    .controls-copy{margin:-4px 0 0}
-    .grid{display:grid;grid-template-columns:1fr;grid-template-areas:"board" "touch" "side";gap:12px;margin-top:14px}
-    @media (min-width:860px){.grid{grid-template-columns:420px 1fr;grid-template-areas:"board side" "touch side";column-gap:18px;row-gap:10px;align-items:start}}
+    .controls-legend{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px;padding:8px;border:1px solid #20293a;border-radius:13px;background:rgba(10,14,22,.52)}
+    .control-hint{display:flex;align-items:center;gap:6px;min-height:34px;padding:5px 8px;border:1px solid #222c3e;border-radius:9px;background:#0f141f;color:#d9e1ee}
+    .control-hint-label{font-size:10px;line-height:1;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800}
+    .control-hint-keys{display:flex;align-items:center;gap:3px}
+    .control-hint kbd{min-width:24px;text-align:center;padding:.08em .36em;background:#151c29;border-color:#344057;color:#edf2f9}
+    .grid{display:grid;grid-template-columns:1fr;grid-template-areas:"board" "touch" "side";gap:12px;margin-top:0}
     .board-wrap{grid-area:board;position:relative;display:flex;justify-content:center}
     .game-area{grid-area:side;display:flex;align-items:flex-start}
     .side-panel{min-width:0;width:100%}
     canvas{border-radius:14px;background:#0c0f15;border:1px solid #1d2432;image-rendering:pixelated;width:100%;height:auto}
-    #game{width:min(100%,max(240px,calc((100svh - 245px)/2)));max-width:420px;aspect-ratio:1/2;box-shadow:0 10px 30px rgba(0,0,0,.35),0 0 0 1px #0d1422 inset}
+    #game{width:min(100%,480px);max-width:480px;aspect-ratio:1/2;box-shadow:0 10px 30px rgba(0,0,0,.35),0 0 0 1px #0d1422 inset}
     .hud{display:grid;gap:9px;grid-template-columns:repeat(5,minmax(0,1fr));margin-bottom:12px}
     .hud .box{background:#0f131b;border:1px solid #1f2736;border-radius:12px;padding:10px 8px;text-align:center;min-width:0}
     .hud strong{display:block;font-size:11px;line-height:1.2;color:var(--muted);font-weight:700}
@@ -62,8 +64,8 @@
     #mood{font-size:clamp(12px,1.7vw,18px);line-height:1.15;white-space:normal;overflow-wrap:anywhere}
     .control-card{padding:13px;display:grid;grid-template-columns:minmax(0,1fr) minmax(170px,.85fr);align-items:center;gap:14px}
     .previews{display:grid;gap:8px;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)}
-    .next-stack{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;align-items:center}
-    .preview{text-align:center;min-width:0}
+    .preview{min-width:0;text-align:center;padding:9px;border:1px solid #1e2737;border-radius:12px;background:#0d121b}
+    .next-stack{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;align-items:center;justify-items:center}
     .preview canvas{aspect-ratio:1/1}
     .next-stack canvas{max-width:70px}
     .hold-preview canvas{max-width:88px}
@@ -91,6 +93,19 @@
     .overlay-language{justify-content:center;margin:0 0 12px}
     .overlay-language .lang-btn{width:38px;height:34px;font-size:19px}
     kbd{font:inherit;font-size:.88em;border:1px solid #30394a;border-bottom-width:2px;border-radius:5px;padding:.05em .32em;background:#111722;color:#dbe4f2}
+    @media (min-width:920px){
+      .grid{grid-template-columns:minmax(420px,480px) minmax(260px,300px);grid-template-areas:"board side" "touch side";justify-content:center;column-gap:20px;row-gap:10px;align-items:start}
+      .board-wrap{justify-content:flex-start}
+      #game{width:100%;max-width:480px}
+      .hud{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
+      .hud .box{padding:10px 7px}
+      .hud .box:nth-child(5){grid-column:1/-1}
+      .control-card{grid-template-columns:1fr;align-items:stretch;gap:10px;padding:12px}
+      .previews{grid-template-columns:1fr;gap:10px}
+      .next-stack canvas{max-width:76px}
+      .hold-preview canvas{max-width:92px}
+      .actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
     @media (max-width:700px){
       .wrap{padding:10px max(8px,env(safe-area-inset-right)) 16px max(8px,env(safe-area-inset-left))}
       body.game-active main.wrap{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
@@ -99,18 +114,18 @@
       .brand img{height:40px;max-width:calc(100vw - 156px)}
       .language-switcher{gap:4px}
       .lang-btn{width:38px;height:36px;font-size:20px;border-radius:10px}
-      .tagline{display:none}
       .card{padding:10px;border-radius:14px}
       .section-title{margin-bottom:8px;font-size:18px}
-      .controls-copy{display:none}
+      .controls-legend{display:none}
       .grid{margin-top:0;gap:9px}
-      #game{width:min(100%,calc((100svh - 188px - env(safe-area-inset-bottom))/2))}
+      #game{width:min(100%,calc((100svh - 142px - env(safe-area-inset-bottom))/2));max-width:420px}
       .control-card{grid-template-columns:1fr;padding:10px}
       .actions{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
       .actions .control{padding:9px 5px;font-size:12px;min-height:44px}
       .hud{margin-bottom:9px;gap:6px}
       .hud .box{padding:8px 5px}
       .previews{gap:8px}
+      .preview{padding:7px}
       .next-stack canvas{max-width:58px}
       .hold-preview canvas{max-width:74px}
       body.game-active .touch-wrap{position:fixed;left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));z-index:60;margin:0;padding:6px;background:rgba(15,19,27,.94);border:1px solid #222a3a;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
@@ -122,7 +137,7 @@
     }
     @media (max-width:560px){
       body.game-active main.wrap{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
-      #game{width:min(100%,calc((100svh - 236px - env(safe-area-inset-bottom))/2))}
+      #game{width:min(100%,calc((100svh - 176px - env(safe-area-inset-bottom))/2))}
       .hud{grid-template-columns:repeat(3,minmax(0,1fr))}
       .actions{grid-template-columns:repeat(2,minmax(0,1fr))}
       .touch{grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -132,13 +147,13 @@
       body.game-active main.wrap{padding-top:6px}
       body.game-active #game-section{padding:6px}
       body.game-active .section-title{display:none}
-      body.game-active #game{width:min(100%,calc((100svh - 156px - env(safe-area-inset-bottom))/2))}
+      body.game-active #game{width:min(100%,calc((100svh - 126px - env(safe-area-inset-bottom))/2))}
     }
     @media (any-pointer:coarse) and (orientation:landscape) and (max-height:600px){
       body.game-active .nav{display:none}
       body.game-active main.wrap{padding:6px calc(206px + env(safe-area-inset-right)) 6px max(6px,env(safe-area-inset-left))}
       body.game-active #game-section{padding:6px}
-      body.game-active .section-title,body.game-active .controls-copy{display:none}
+      body.game-active .section-title,body.game-active .controls-legend{display:none}
       body.game-active .grid{margin-top:0;gap:6px}
       body.game-active #game{width:min(100%,calc((100svh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))/2));min-width:0}
       body.game-active .touch-wrap{position:fixed;left:auto;right:max(8px,env(safe-area-inset-right));top:max(8px,env(safe-area-inset-top));bottom:max(8px,env(safe-area-inset-bottom));width:192px;z-index:60;margin:0;padding:6px;background:rgba(15,19,27,.94);border:1px solid #222a3a;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
@@ -167,14 +182,22 @@
           <button class="lang-btn" type="button" data-lang="ca" aria-label="Català" aria-pressed="false"><span class="senyera" aria-hidden="true"></span></button>
         </div>
       </div>
-      <p class="tagline"><span>A tiny neon puzzler with moods</span> — by <a href="https://santiagorodriguez.com" target="_blank" rel="noopener noreferrer">santirodriguez</a>.</p>
     </div>
   </nav>
 
   <main class="wrap">
     <section class="card" id="game-section">
       <h2 class="section-title" data-i18n="game">Game</h2>
-      <p class="muted controls-copy" data-i18n-html="controls">Controls: ←/→ move, ↑/X rotate clockwise, Z rotate counter-clockwise, ↓ soft drop, Space hard drop, <kbd>C</kbd> Hold, <kbd>P</kbd> Pause, <kbd>R</kbd> Restart, <kbd>G</kbd> Ghost, <kbd>M</kbd> Mute.</p>
+      <div class="controls-legend" aria-label="Game controls">
+        <div class="control-hint"><span class="control-hint-label" data-i18n="legendMove">Move</span><span class="control-hint-keys"><kbd>←</kbd><kbd>→</kbd></span></div>
+        <div class="control-hint"><span class="control-hint-label" data-i18n="legendRotate">Rotate</span><span class="control-hint-keys"><kbd>↑</kbd><kbd>X</kbd><kbd>Z</kbd></span></div>
+        <div class="control-hint"><span class="control-hint-label" data-i18n="legendDrop">Drop</span><span class="control-hint-keys"><kbd>↓</kbd><kbd>Space</kbd></span></div>
+        <div class="control-hint"><span class="control-hint-label" data-i18n="legendHold">Hold</span><span class="control-hint-keys"><kbd>C</kbd></span></div>
+        <div class="control-hint"><span class="control-hint-label" data-i18n="legendPause">Pause</span><span class="control-hint-keys"><kbd>P</kbd></span></div>
+        <div class="control-hint"><span class="control-hint-label" data-i18n="legendRestart">Restart</span><span class="control-hint-keys"><kbd>R</kbd></span></div>
+        <div class="control-hint"><span class="control-hint-label" data-i18n="legendGhost">Ghost</span><span class="control-hint-keys"><kbd>G</kbd></span></div>
+        <div class="control-hint"><span class="control-hint-label" data-i18n="legendSound">Sound</span><span class="control-hint-keys"><kbd>M</kbd></span></div>
+      </div>
       <div class="grid">
         <div class="board-wrap"><canvas id="game" width="200" height="400" tabindex="0" aria-label="Game board"></canvas></div>
         <div class="game-area"><div class="side-panel">
@@ -218,14 +241,14 @@
             <button class="control" type="button" data-act="hold" aria-label="Hold piece" data-i18n="holdButton">HOLD</button>
             <button class="control" type="button" data-act="pause" aria-label="Pause">⏸</button>
           </div>
-          <p class="help" data-i18n="help">Keyboard or on-screen buttons.</p>
+          <p class="help" data-i18n="help">Keyboard or on-screen controls.</p>
         </div>
       </div>
     </section>
 
     <section class="card about">
-      <h2 class="section-title" data-i18n="about">About</h2>
-      <p class="muted" data-i18n="aboutCopy">Built as a compact riff on falling blocks—sometimes radiant, sometimes a little blue—yet always snappy.</p>
+      <h2 class="section-title" data-i18n="about">About the game</h2>
+      <p class="muted" data-i18n="aboutCopy">A small falling-block game. It's quite sensitive, and for once I mean that literally.</p>
     </section>
   </main>
 
@@ -234,7 +257,7 @@
   <div class="overlay" id="overlay" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="overlay-title" tabindex="-1">
       <div id="overlay-emoji" class="overlay-emoji" aria-hidden="true">🙂</div>
-      <h3 id="overlay-title">Ready</h3><p id="overlay-msg">Press Start to play.</p>
+      <h3 id="overlay-title">Ready</h3><p id="overlay-msg">Whenever you're ready.</p>
       <div class="language-switcher overlay-language" aria-label="Language selector">
         <button class="lang-btn" type="button" data-lang="en" aria-label="English (United States)" aria-pressed="true">🇺🇸</button>
         <button class="lang-btn" type="button" data-lang="es-AR" aria-label="Español (Argentina)" aria-pressed="false">🇦🇷</button>
@@ -248,9 +271,9 @@
   (()=>{"use strict";
     const STORAGE={best:'tetristeza:best',language:'tetristeza:language'};
     const translations={
-      en:{languageSwitcher:'Language selector',game:'Game',controls:'Controls: ←/→ move, ↑/X rotate clockwise, Z rotate counter-clockwise, ↓ soft drop, Space hard drop, <kbd>C</kbd> Hold, <kbd>P</kbd> Pause, <kbd>R</kbd> Restart, <kbd>G</kbd> Ghost, <kbd>M</kbd> Mute.',score:'Score',lines:'Lines',level:'Level',mood:'Mood',best:'Best',next:'Next',hold:'Hold',start:'Start',pause:'Pause',reset:'Reset',mute:'Mute',unmute:'Unmute',holdButton:'HOLD',help:'Keyboard or on-screen buttons.',about:'About',aboutCopy:'Built as a compact riff on falling blocks—sometimes radiant, sometimes a little blue—yet always snappy.',ready:'Ready',readyMsg:'Press Start to play.',resume:'Resume',paused:'Paused',pausedMsg:'Take a moment. Then drop blocks.',gameOver:'Game Over',playAgain:'Play again',scoreFinal:'Score: {score}',glow:'Glow',gloom:'Gloom',board:'Game board',nextPiece:'Next piece',holdPiece:'Hold piece',moveLeft:'Move left',rotate:'Rotate clockwise',moveRight:'Move right',softDrop:'Soft drop',hardDrop:'Hard drop'},
-      'es-AR':{languageSwitcher:'Selector de idioma',game:'Juego',controls:'Controles: ←/→ mover, ↑/X rotar a la derecha, Z rotar a la izquierda, ↓ bajar, Espacio caída rápida, <kbd>C</kbd> Guardar, <kbd>P</kbd> Pausa, <kbd>R</kbd> Reiniciar, <kbd>G</kbd> Fantasma, <kbd>M</kbd> Silencio.',score:'Puntaje',lines:'Líneas',level:'Nivel',mood:'Ánimo',best:'Récord',next:'Siguientes',hold:'Guardar',start:'Jugar',pause:'Pausa',reset:'Reiniciar',mute:'Silenciar',unmute:'Activar sonido',holdButton:'GUARDAR',help:'Usá el teclado o los botones en pantalla.',about:'Acerca de',aboutCopy:'Una versión compacta de los bloques que caen: a veces brillante, a veces un poco triste, pero siempre ágil.',ready:'Listo',readyMsg:'Presioná Jugar para empezar.',resume:'Continuar',paused:'En pausa',pausedMsg:'Tomate un momento. Después seguí acomodando bloques.',gameOver:'Fin del juego',playAgain:'Jugar de nuevo',scoreFinal:'Puntaje: {score}',glow:'Brillo',gloom:'Tristeza',board:'Tablero de juego',nextPiece:'Próxima pieza',holdPiece:'Pieza guardada',moveLeft:'Mover a la izquierda',rotate:'Rotar a la derecha',moveRight:'Mover a la derecha',softDrop:'Bajar',hardDrop:'Caída rápida'},
-      ca:{languageSwitcher:'Selector d’idioma',game:'Joc',controls:'Controls: ←/→ moure, ↑/X girar a la dreta, Z girar a l’esquerra, ↓ baixada suau, Espai baixada ràpida, <kbd>C</kbd> Reserva, <kbd>P</kbd> Pausa, <kbd>R</kbd> Reinicia, <kbd>G</kbd> Fantasma, <kbd>M</kbd> Silenci.',score:'Puntuació',lines:'Línies',level:'Nivell',mood:'Ànim',best:'Rècord',next:'Següents',hold:'Reserva',start:'Comença',pause:'Pausa',reset:'Reinicia',mute:'Silencia',unmute:'Activa el so',holdButton:'RESERVA',help:'Fes servir el teclat o els botons de pantalla.',about:'Sobre el joc',aboutCopy:'Una versió compacta dels blocs que cauen: de vegades radiant, de vegades una mica trista, però sempre àgil.',ready:'A punt',readyMsg:'Prem Comença per jugar.',resume:'Continua',paused:'En pausa',pausedMsg:'Fes una pausa. Després continua col·locant blocs.',gameOver:'Fi de la partida',playAgain:'Torna a jugar',scoreFinal:'Puntuació: {score}',glow:'Brillantor',gloom:'Tristesa',board:'Tauler de joc',nextPiece:'Peça següent',holdPiece:'Peça reservada',moveLeft:'Mou a l’esquerra',rotate:'Gira a la dreta',moveRight:'Mou a la dreta',softDrop:'Baixada suau',hardDrop:'Baixada ràpida'}
+      en:{languageSwitcher:'Language selector',game:'Game',legendMove:'Move',legendRotate:'Rotate',legendDrop:'Drop',legendHold:'Hold',legendPause:'Pause',legendRestart:'Restart',legendGhost:'Ghost',legendSound:'Sound',score:'Score',lines:'Lines',level:'Level',mood:'Mood',best:'Best',next:'Next',hold:'Hold',start:'Start',pause:'Pause',reset:'Reset',mute:'Mute',unmute:'Unmute',holdButton:'HOLD',help:'Keyboard or on-screen controls.',about:'About the game',aboutCopy:'A small falling-block game. It’s quite sensitive, and for once I mean that literally.',ready:'Ready',readyMsg:'Whenever you’re ready.',resume:'Resume',paused:'Paused',pausedMsg:'No rush. The blocks can wait.',gameOver:'Game Over',playAgain:'Play again',scoreFinal:'Score: {score}',glow:'Glow',gloom:'Gloom',board:'Game board',nextPiece:'Next piece',holdPiece:'Hold piece',moveLeft:'Move left',rotate:'Rotate clockwise',moveRight:'Move right',softDrop:'Soft drop',hardDrop:'Hard drop'},
+      'es-AR':{languageSwitcher:'Selector de idioma',game:'Juego',legendMove:'Mover',legendRotate:'Rotar',legendDrop:'Caída',legendHold:'Guardar',legendPause:'Pausa',legendRestart:'Reiniciar',legendGhost:'Fantasma',legendSound:'Sonido',score:'Puntaje',lines:'Líneas',level:'Nivel',mood:'Ánimo',best:'Récord',next:'Siguientes',hold:'Guardar',start:'Jugar',pause:'Pausa',reset:'Reiniciar',mute:'Silenciar',unmute:'Activar sonido',holdButton:'GUARDAR',help:'Teclado o controles en pantalla.',about:'De qué trata el juego',aboutCopy:'Un jueguito de bloques que caen. Es bastante sensible y, por una vez, lo digo literalmente.',ready:'Todo listo',readyMsg:'Cuando quieras, arrancá.',resume:'Seguir',paused:'En pausa',pausedMsg:'Tranqui. Los bloques pueden esperar.',gameOver:'Partida finalizada',playAgain:'Volver a jugar',scoreFinal:'Puntaje: {score}',glow:'Brillo',gloom:'Tristeza',board:'Tablero de juego',nextPiece:'Próxima pieza',holdPiece:'Pieza guardada',moveLeft:'Mover a la izquierda',rotate:'Rotar a la derecha',moveRight:'Mover a la derecha',softDrop:'Bajar',hardDrop:'Caída rápida'},
+      ca:{languageSwitcher:'Selector d’idioma',game:'Joc',legendMove:'Moure',legendRotate:'Girar',legendDrop:'Baixar',legendHold:'Reserva',legendPause:'Pausa',legendRestart:'Reiniciar',legendGhost:'Fantasma',legendSound:'So',score:'Puntuació',lines:'Línies',level:'Nivell',mood:'Ànim',best:'Rècord',next:'Següents',hold:'Reserva',start:'Juga',pause:'Pausa',reset:'Reinicia',mute:'Silencia',unmute:'Activa el so',holdButton:'RESERVA',help:'Teclat o controls en pantalla.',about:'De què va el joc',aboutCopy:'Un joc petit de blocs que cauen. És força sensible i, per una vegada, ho dic literalment.',ready:'Tot a punt',readyMsg:'Quan vulguis, comença.',resume:'Continua',paused:'En pausa',pausedMsg:'Cap pressa. Els blocs poden esperar.',gameOver:'Partida acabada',playAgain:'Torna a jugar',scoreFinal:'Puntuació: {score}',glow:'Brillantor',gloom:'Tristesa',board:'Tauler de joc',nextPiece:'Peça següent',holdPiece:'Peça reservada',moveLeft:'Mou a l’esquerra',rotate:'Gira a la dreta',moveRight:'Mou a la dreta',softDrop:'Baixa',hardDrop:'Baixada ràpida'}
     };
     function storageGet(key,fallback){try{return localStorage.getItem(key)??fallback}catch{return fallback}}
     function storageSet(key,value){try{localStorage.setItem(key,value)}catch{}}
@@ -320,7 +343,7 @@
     function ghostOf(p){let y=p.y;while(!collide(board,{...p,y:y+1}))y++;return{...p,y}}
     function resetLockDelay(){if(grounded&&lockResets<MAX_LOCK_RESETS){groundTimer=0;lockResets++}}
     function tryMove(dx,dy){if(!current)return false;const np={...current,x:current.x+dx,y:current.y+dy};if(!collide(board,np)){current.x=np.x;current.y=np.y;if(dy!==0)dropCounter=0;else resetLockDelay();return true}return false}
-    function rotatePiece(direction=1){if(!current)return false;const from=current.rotation,to=(from+(direction>0?1:3))%4;if(current.type==='O'){current.rotation=to;return true}const matrix=clone(ROTATIONS[current.type][to]),kicks=(current.type==='I'?I_KICKS:JLSTZ_KICKS)[`${from}>${to}`]||[[0,0]];for(const[dx,dy]of kicks){const np={...current,matrix,rotation:to,x:current.x+dx,y:current.y+dy};if(!collide(board,np)){current.matrix=matrix;current.rotation=to;current.x=np.x;current.y=np.y;resetLockDelay();tone(540,.05,'triangle',.02);return true}}return false}
+    function rotatePiece(direction=1){if(!current)return false;const from=current.rotation,to=(from+(direction>0?1:3))%4;if(current.type==='O'){current.rotation=to;resetLockDelay();tone(540,.05,'triangle',.02);return true}const matrix=clone(ROTATIONS[current.type][to]),kicks=(current.type==='I'?I_KICKS:JLSTZ_KICKS)[`${from}>${to}`]||[[0,0]];for(const[dx,dy]of kicks){const np={...current,matrix,rotation:to,x:current.x+dx,y:current.y+dy};if(!collide(board,np)){current.matrix=matrix;current.rotation=to;current.x=np.x;current.y=np.y;resetLockDelay();tone(540,.05,'triangle',.02);return true}}return false}
     function softDrop(){if(current&&tryMove(0,1)){score++;scoreEl.textContent=String(score);checkMilestone()}}
     function hardDrop(){if(!current)return;let dist=0;while(!collide(board,{...current,y:current.y+1})){current.y++;dist++}score+=dist*2;scoreEl.textContent=String(score);checkMilestone();addImpactParticles(current.x+current.matrix[0].length/2,current.y+current.matrix.length+.1,current.color);tone(720,.05,'square',.03);lockNow()}
     function lockNow(){if(!current)return;const toppedOut=locksAboveBoard(current);merge(board,current);if(toppedOut){current=null;grounded=false;groundTimer=0;drawBoard();gameOver();return}sweep();spawn()}
