@@ -33,7 +33,7 @@ Then I added Hold, Ghost, particles, actual moods, a global Top 10, and enough w
 ## Screenshot
 
 <p align="center">
-  <img src="assets/screenshots/screenshot-v1.1.png" alt="Tetristeza gameplay" width="900" />
+  <img src="assets/screenshots/screenshot-v1.4.png" alt="Tetristeza v1.4.0 gameplay" width="900" />
 </p>
 
 ## What it does
