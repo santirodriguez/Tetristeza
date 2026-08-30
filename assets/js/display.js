@@ -229,6 +229,8 @@
     releaseMainInert();
     gameSection.inert = false;
     document.body.classList.remove('game-active');
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && active.closest('#overlay')) active.blur();
   }
 
   function detachedTranslation() {
@@ -331,6 +333,7 @@
     popup.addEventListener('blur', () => {
       ['ArrowLeft','ArrowRight','ArrowDown'].forEach(code => document.dispatchEvent(new KeyboardEvent('keyup', {code, bubbles:true})));
     });
+    popup.addEventListener('resize', () => window.dispatchEvent(new Event('resize')));
     popup.addEventListener('beforeunload', () => {
       if (!shuttingDown && detached) returnToPage({fromPopupClose:true});
     });
