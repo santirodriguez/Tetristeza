@@ -8,7 +8,7 @@
   const copy = {
     en: {
       top: 'Top 10', subtitle: 'Brief victories over Tetristeza, ranked.',
-      newTop: 'New Top Score!', newTopNote: 'The blocks are taking this personally.',
+      newTop: 'You made the Top 10!', newTopNote: 'The blocks are taking this personally.',
       empty: 'Nobody has survived the blocks yet.', name: 'Name', email: 'Email · optional',
       emailNote: 'Private · never shown publicly', localEmailNote: 'Local test · email is not stored',
       localTest: 'Local test · this Top 10 is saved only in this browser.',
@@ -19,7 +19,7 @@
     },
     'es-AR': {
       top: 'Top 10', subtitle: 'Superando la Tetristeza, un puntaje a la vez.',
-      newTop: '¡Nuevo Top Score!', newTopNote: 'La Tetristeza no pudo con vos. Esta vez.',
+      newTop: '¡Entraste al Top 10!', newTopNote: 'La Tetristeza no pudo con vos. Esta vez.',
       empty: 'Todavía nadie sobrevivió a la Tetristeza.', name: 'Nombre', email: 'Email · opcional',
       emailNote: 'Privado · nunca se muestra públicamente', localEmailNote: 'Prueba local · el email no se guarda',
       localTest: 'Prueba local · este Top 10 se guarda solo en este navegador.',
@@ -30,7 +30,7 @@
     },
     ca: {
       top: 'Top 10', subtitle: 'Superant la Tetristeza, una puntuació cada vegada.',
-      newTop: 'Nou Top Score!', newTopNote: 'La Tetristeza no ha pogut amb tu. Aquesta vegada.',
+      newTop: 'Has entrat al Top 10!', newTopNote: 'La Tetristeza no ha pogut amb tu. Aquesta vegada.',
       empty: 'Encara ningú ha sobreviscut a la Tetristeza.', name: 'Nom', email: 'Email · opcional',
       emailNote: 'Privat · mai no es mostra públicament', localEmailNote: 'Prova local · l’email no es desa',
       localTest: 'Prova local · aquest Top 10 només es desa en aquest navegador.',
