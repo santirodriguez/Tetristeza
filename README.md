@@ -47,6 +47,8 @@ Then I added Hold, Ghost, particles, actual moods, a global Top 10, and enough w
 - **Global Top 10** with names up to 8 characters and an optional private email
 - Lightweight particles and minimal audio through the Web Audio API
 - Responsive keyboard and Pointer Events controls for mouse/touch/pen
+- Viewport-aware playfield sizing so the complete board stays visible at normal browser zoom
+- Optional **resizable pop-out display** that mirrors and controls the same live game session
 - Persistent language preference and personal best stored locally in the browser
 - HiDPI Canvas rendering and reduced-motion support
 - No framework, package manager, compiler, or runtime dependency for the game itself
@@ -66,7 +68,7 @@ Then I added Hold, Ghost, particles, actual moods, a global Top 10, and enough w
 | Ghost toggle | `G` |
 | Mute | `M` |
 
-On touch devices, use the on-screen controls. Left, right, and soft drop support press-and-hold; Pause stays available in the active mobile control dock.
+On touch devices, use the on-screen controls. Left, right, and soft drop support press-and-hold; Pause stays available in the active mobile control dock. On desktop, the optional pop-out display can be resized or moved to another screen while keeping the same game session.
 
 ## Scoring & Levels
 
@@ -94,7 +96,9 @@ It is intentionally an arcade leaderboard, not an esports anti-cheat department.
 
 ## Technical notes
 
-The game stays in plain HTML/CSS/JavaScript. The leaderboard is isolated in `assets/js/leaderboard.js` with a single self-hosted `api/scores.php` endpoint backed by SQLite.
+The game stays in plain HTML/CSS/JavaScript. `assets/js/leaderboard.js` is a small browser bootstrap: it loads the detachable display UI from `assets/js/display.js` and the leaderboard implementation from `assets/js/leaderboard-core.js`. The leaderboard uses a single self-hosted `api/scores.php` endpoint backed by SQLite.
+
+The detachable display is a regular browser window opened by an explicit user action. It mirrors the authoritative game canvas and forwards controls back to the main page rather than running a second game state.
 
 The SQLite database lives outside the public document root by default. Set `TETRISTEZA_DB_PATH` only when a different private server path is needed.
 
