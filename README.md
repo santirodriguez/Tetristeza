@@ -63,12 +63,12 @@ Then I added Hold, Ghost, particles, actual moods, a global Top 10, and enough w
 | Soft drop | `↓` |
 | Hard drop | `Space` |
 | Hold | `C` |
-| Pause | `P` |
+| Pause / Resume | `P` or `Esc` |
 | Quick restart | `R` |
 | Ghost toggle | `G` |
 | Mute | `M` |
 
-On touch devices, use the on-screen controls. Left, right, and soft drop support press-and-hold; Pause stays available in the active mobile control dock. On desktop, **Move to window** transfers the same live game surface to a resizable window; closing it or choosing **Return to page** puts the game back without starting a second session.
+On touch devices, use the on-screen controls. Left, right, and soft drop support press-and-hold; Pause stays available in the active mobile control dock. On desktop, **Move to window** transfers the same live game surface to a resizable window; closing it or choosing **Return to page** puts the game back without starting a second session. If the active game window is hidden, the match pauses instead of quietly carrying on without you.
 
 ## Scoring & Levels
 
