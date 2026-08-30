@@ -150,6 +150,14 @@
   controlCard.insertAdjacentElement('afterend', moveButton);
   moveButton.insertAdjacentElement('afterend', controlsLegend);
 
+  const pauseHintKeys = controlsLegend.querySelector('[data-i18n="legendPause"]')?.closest('.control-hint')?.querySelector('.control-hint-keys');
+  if (pauseHintKeys && !pauseHintKeys.querySelector('[data-key="escape"]')) {
+    const escapeKey = document.createElement('kbd');
+    escapeKey.dataset.key = 'escape';
+    escapeKey.textContent = 'Esc';
+    pauseHintKeys.appendChild(escapeKey);
+  }
+
   const placeholder = document.createElement('section');
   placeholder.className = 'card game-detached-placeholder';
   placeholder.hidden = true;
@@ -301,6 +309,7 @@
       moveButton.title = c.blocked;
       return null;
     }
+    moveButton.removeAttribute('title');
 
     popup.document.open();
     popup.document.write('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="dark"><title>Tetristeza</title></head><body class="detached-document"><header class="detached-header"><img id="detached-logo" alt="Tetristeza"><button id="detached-return" class="control btn-accent" type="button"></button></header><main id="detached-surface" class="detached-surface"></main></body></html>');
@@ -314,7 +323,7 @@
     return popup;
   }
 
-  const gameKeys = new Set(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp','Space','KeyC','KeyP','KeyR','KeyG','KeyM','KeyX','KeyZ']);
+  const gameKeys = new Set(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp','Space','Escape','KeyC','KeyP','KeyR','KeyG','KeyM','KeyX','KeyZ']);
 
   function forwardKeyboard(type, event) {
     if (!gameKeys.has(event.code)) return;
@@ -330,6 +339,9 @@
     popup.document.getElementById('detached-return').addEventListener('click', () => returnToPage());
     popup.document.addEventListener('keydown', event => forwardKeyboard('keydown', event));
     popup.document.addEventListener('keyup', event => forwardKeyboard('keyup', event));
+    popup.document.addEventListener('visibilitychange', () => {
+      if (popup.document.hidden && detached && isPlaying()) pauseButton.click();
+    });
     popup.addEventListener('blur', () => {
       ['ArrowLeft','ArrowRight','ArrowDown'].forEach(code => document.dispatchEvent(new KeyboardEvent('keyup', {code, bubbles:true})));
     });
@@ -403,6 +415,16 @@
   });
   moveButton.addEventListener('click', detachToWindow);
   placeholder.querySelector('.game-return-button').addEventListener('click', () => returnToPage());
+
+  document.addEventListener('keydown', event => {
+    if (event.code !== 'Escape' || event.repeat || !startButton.disabled) return;
+    event.preventDefault();
+    pauseButton.click();
+  }, true);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && !detached && isPlaying()) pauseButton.click();
+  });
 
   document.querySelectorAll('.lang-btn').forEach(button => button.addEventListener('click', () => setTimeout(syncMovedLanguage, 0)));
 
