@@ -340,7 +340,10 @@
     popup.document.addEventListener('keydown', event => forwardKeyboard('keydown', event));
     popup.document.addEventListener('keyup', event => forwardKeyboard('keyup', event));
     popup.document.addEventListener('visibilitychange', () => {
-      if (popup.document.hidden && detached && isPlaying()) pauseButton.click();
+      if (!popup.document.hidden) return;
+      window.setTimeout(() => {
+        if (detached && displayWindow === popup && !popup.closed && popup.document.hidden && isPlaying()) pauseButton.click();
+      }, 150);
     });
     popup.addEventListener('blur', () => {
       ['ArrowLeft','ArrowRight','ArrowDown'].forEach(code => document.dispatchEvent(new KeyboardEvent('keyup', {code, bubbles:true})));
