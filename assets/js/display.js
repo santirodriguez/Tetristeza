@@ -1,48 +1,55 @@
 (() => {
   'use strict';
 
+  const gameSection = document.getElementById('game-section');
   const gameCanvas = document.getElementById('game');
+  const boardWrap = gameCanvas?.closest('.board-wrap');
   const sidePanel = document.querySelector('.side-panel');
   const controlCard = sidePanel?.querySelector('.control-card');
   const controlsLegend = document.querySelector('.controls-legend');
-  const mainOverlay = document.getElementById('overlay');
-  const mainOverlayTitle = document.getElementById('overlay-title');
-  const mainOverlayMessage = document.getElementById('overlay-msg');
-  const mainOverlayPrimary = document.getElementById('overlay-primary');
-  const mainOverlaySecondary = document.getElementById('overlay-secondary');
-  const mainStart = document.getElementById('start');
-  const mainPause = document.getElementById('pause');
-  const mainReset = document.getElementById('reset');
-  const mainMute = document.getElementById('mute');
-  const mainMuteIcon = document.getElementById('mute-icon');
-  const mainMuteLabel = document.getElementById('mute-label');
-  const mainNext = [1, 2, 3].map(index => document.getElementById(`next-${index}`));
-  const mainHold = document.getElementById('hold');
-  const mainStats = {
-    score: document.getElementById('score'),
-    lines: document.getElementById('lines'),
-    level: document.getElementById('level'),
-    mood: document.getElementById('mood'),
-    best: document.getElementById('best')
-  };
+  const overlay = document.getElementById('overlay');
+  const startButton = document.getElementById('start');
+  const pauseButton = document.getElementById('pause');
+  const mainRegions = [...document.querySelectorAll('.nav, main, .footer')];
 
-  if (!gameCanvas || !sidePanel || !controlCard || !controlsLegend) return;
+  if (!gameSection || !gameCanvas || !boardWrap || !sidePanel || !controlCard || !controlsLegend || !overlay || !startButton || !pauseButton) return;
 
   const copy = {
     en: {
-      display: 'Pop out', displayTitle: 'Tetristeza — Display', score: 'Score', lines: 'Lines',
-      level: 'Level', mood: 'Mood', best: 'Best', next: 'Next', hold: 'Hold', start: 'Start',
-      pause: 'Pause', reset: 'Reset', mute: 'Mute', sound: 'Sound', blocked: 'Pop-up blocked'
+      moveWindow: 'Move to window', returnPage: 'Return to page', play: 'Play',
+      detached: 'The game is running in another window.', blocked: 'Pop-up blocked',
+      displayTitle: 'Tetristeza — Game', languageSwitcher: 'Language selector',
+      game: 'Game', legendMove: 'Move', legendRotate: 'Rotate', legendDrop: 'Drop', legendHold: 'Hold',
+      legendPause: 'Pause', legendRestart: 'Restart', legendGhost: 'Ghost', legendSound: 'Sound',
+      score: 'Score', lines: 'Lines', level: 'Level', mood: 'Mood', best: 'Best', next: 'Next', hold: 'Hold',
+      start: 'Start', pause: 'Pause', reset: 'Reset', holdButton: 'HOLD', help: 'Keyboard or on-screen controls.',
+      about: 'About the game', aboutCopy: 'A small falling-block game. It’s quite sensitive, and for once I mean that literally.',
+      board: 'Game board', nextPiece: 'Next piece', holdPiece: 'Hold piece', moveLeft: 'Move left', rotate: 'Rotate clockwise',
+      moveRight: 'Move right', softDrop: 'Soft drop', hardDrop: 'Hard drop'
     },
     'es-AR': {
-      display: 'Abrir aparte', displayTitle: 'Tetristeza — Display', score: 'Puntaje', lines: 'Líneas',
-      level: 'Nivel', mood: 'Ánimo', best: 'Récord', next: 'Siguientes', hold: 'Guardar', start: 'Jugar',
-      pause: 'Pausa', reset: 'Reiniciar', mute: 'Silenciar', sound: 'Sonido', blocked: 'El navegador bloqueó la ventana'
+      moveWindow: 'Mover a otra ventana', returnPage: 'Volver a la página', play: 'Jugar',
+      detached: 'La partida está en otra ventana.', blocked: 'El navegador bloqueó la ventana',
+      displayTitle: 'Tetristeza — Juego', languageSwitcher: 'Selector de idioma',
+      game: 'Juego', legendMove: 'Mover', legendRotate: 'Rotar', legendDrop: 'Caída', legendHold: 'Guardar',
+      legendPause: 'Pausa', legendRestart: 'Reiniciar', legendGhost: 'Fantasma', legendSound: 'Sonido',
+      score: 'Puntaje', lines: 'Líneas', level: 'Nivel', mood: 'Ánimo', best: 'Récord', next: 'Siguientes', hold: 'Guardar',
+      start: 'Jugar', pause: 'Pausa', reset: 'Reiniciar', holdButton: 'GUARDAR', help: 'Teclado o controles en pantalla.',
+      about: 'De qué trata el juego', aboutCopy: 'Un jueguito de bloques que caen. Es bastante sensible y, por una vez, lo digo literalmente.',
+      board: 'Tablero de juego', nextPiece: 'Próxima pieza', holdPiece: 'Pieza guardada', moveLeft: 'Mover a la izquierda',
+      rotate: 'Rotar a la derecha', moveRight: 'Mover a la derecha', softDrop: 'Bajar', hardDrop: 'Caída rápida'
     },
     ca: {
-      display: 'Obre en una finestra', displayTitle: 'Tetristeza — Display', score: 'Puntuació', lines: 'Línies',
-      level: 'Nivell', mood: 'Ànim', best: 'Rècord', next: 'Següents', hold: 'Reserva', start: 'Juga',
-      pause: 'Pausa', reset: 'Reinicia', mute: 'Silencia', sound: 'So', blocked: 'El navegador ha bloquejat la finestra'
+      moveWindow: 'Mou a una finestra', returnPage: 'Torna a la pàgina', play: 'Juga',
+      detached: 'La partida és en una altra finestra.', blocked: 'El navegador ha bloquejat la finestra',
+      displayTitle: 'Tetristeza — Joc', languageSwitcher: 'Selector d’idioma',
+      game: 'Joc', legendMove: 'Moure', legendRotate: 'Girar', legendDrop: 'Baixar', legendHold: 'Reserva',
+      legendPause: 'Pausa', legendRestart: 'Reiniciar', legendGhost: 'Fantasma', legendSound: 'So',
+      score: 'Puntuació', lines: 'Línies', level: 'Nivell', mood: 'Ànim', best: 'Rècord', next: 'Següents', hold: 'Reserva',
+      start: 'Juga', pause: 'Pausa', reset: 'Reinicia', holdButton: 'RESERVA', help: 'Teclat o controls en pantalla.',
+      about: 'De què va el joc', aboutCopy: 'Un joc petit de blocs que cauen. És força sensible i, per una vegada, ho dic literalment.',
+      board: 'Tauler de joc', nextPiece: 'Peça següent', holdPiece: 'Peça reservada', moveLeft: 'Mou a l’esquerra',
+      rotate: 'Gira a la dreta', moveRight: 'Mou a la dreta', softDrop: 'Baixa', hardDrop: 'Baixada ràpida'
     }
   };
 
@@ -61,15 +68,23 @@
     .display-popout{width:100%;margin-top:8px}
     .touch-wrap{display:none}
     #game{width:min(100%,480px,calc((100svh - 180px)/2))}
-    @media (any-pointer:coarse){.touch-wrap{display:block}}
+    .board-start-prompt{position:absolute;left:50%;bottom:18px;z-index:8;transform:translateX(-50%);display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border:1px solid #36506c;border-radius:999px;background:rgba(15,24,38,.88);color:var(--text);font-weight:750;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.28);opacity:.48;transition:opacity .18s ease,transform .18s ease,background .18s ease;backdrop-filter:blur(6px)}
+    .board-wrap:hover .board-start-prompt,.board-start-prompt:focus-visible{opacity:1;transform:translateX(-50%) translateY(-2px);background:rgba(23,32,54,.96)}
+    body.game-active .board-start-prompt,.detached-document.game-active .board-start-prompt{display:none}
+    .game-detached-placeholder{display:grid;place-items:center;gap:12px;min-height:280px;text-align:center}
+    .game-detached-placeholder p{margin:0;color:var(--muted)}
+    .game-detached-placeholder .control{min-width:180px}
+    body.display-detached.game-active .nav{display:block!important}
+    body.display-detached main.wrap{padding-top:18px!important;padding-bottom:18px!important}
+    @media (any-pointer:coarse){.touch-wrap{display:block}.board-start-prompt{opacity:1}}
     @media (min-width:701px){
-      body.game-active #game{width:min(100%,480px,calc((100svh - 44px)/2))}
+      body.game-active:not(.display-detached) #game{width:min(100%,480px,calc((100svh - 44px)/2))}
     }
     @media (min-width:701px) and (max-height:1100px){
-      body.game-active .nav{display:none}
-      body.game-active main.wrap{padding-top:8px;padding-bottom:8px}
-      body.game-active #game-section{padding:10px 14px}
-      body.game-active #game-section>.section-title{display:none}
+      body.game-active:not(.display-detached) .nav{display:none}
+      body.game-active:not(.display-detached) main.wrap{padding-top:8px;padding-bottom:8px}
+      body.game-active:not(.display-detached) #game-section{padding:10px 14px}
+      body.game-active:not(.display-detached) #game-section>.section-title{display:none}
     }
     @media (min-width:920px){
       .grid{grid-template-columns:minmax(320px,480px) minmax(260px,300px)}
@@ -81,261 +96,336 @@
     }
     @media (max-width:700px){
       .touch-wrap{display:block}
-      body.game-active .nav{display:none}
-      body.game-active main.wrap{padding-top:6px;padding-bottom:calc(82px + env(safe-area-inset-bottom))}
-      body.game-active #game-section{padding:6px}
-      body.game-active #game-section>.section-title{display:none}
-      body.game-active #game{width:min(100%,420px,calc((100svh - 86px - env(safe-area-inset-bottom))/2))}
+      body.game-active:not(.display-detached) .nav{display:none}
+      body.game-active:not(.display-detached) main.wrap{padding-top:6px;padding-bottom:calc(82px + env(safe-area-inset-bottom))}
+      body.game-active:not(.display-detached) #game-section{padding:6px}
+      body.game-active:not(.display-detached) #game-section>.section-title{display:none}
+      body.game-active:not(.display-detached) #game{width:min(100%,420px,calc((100svh - 86px - env(safe-area-inset-bottom))/2))}
       .display-popout{display:none}
     }
     @media (max-width:560px){
-      body.game-active main.wrap{padding-bottom:calc(128px + env(safe-area-inset-bottom))}
-      body.game-active #game{width:min(100%,calc((100svh - 138px - env(safe-area-inset-bottom))/2))}
+      body.game-active:not(.display-detached) main.wrap{padding-bottom:calc(128px + env(safe-area-inset-bottom))}
+      body.game-active:not(.display-detached) #game{width:min(100%,calc((100svh - 138px - env(safe-area-inset-bottom))/2))}
     }
     @media (any-pointer:coarse) and (orientation:landscape) and (max-height:600px){
-      body.game-active #game{width:min(100%,calc((100svh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))/2))}
+      body.game-active:not(.display-detached) #game{width:min(100%,calc((100svh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))/2))}
+    }
+    .detached-document{min-height:100%;margin:0;overflow:auto;background:var(--bg);color:var(--text)}
+    .detached-header{position:sticky;top:0;z-index:900;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;border-bottom:1px solid var(--border);background:rgba(14,17,22,.94);backdrop-filter:blur(10px)}
+    .detached-header img{display:block;width:auto;height:34px;max-width:55vw;object-fit:contain}
+    .detached-header .control{padding:8px 10px;font-size:13px}
+    .detached-surface{padding:10px;display:grid;place-items:start center}
+    .detached-document #game-section{width:min(100%,820px);padding:12px;margin:0}
+    .detached-document #game-section>.section-title{display:none}
+    .detached-document .display-popout{display:none!important}
+    .detached-document #game{width:min(100%,480px,calc((100svh - 86px)/2))!important}
+    .detached-document .footer,.detached-document .nav{display:none!important}
+    @media (min-width:620px){
+      .detached-document .grid{grid-template-columns:minmax(300px,480px) minmax(230px,280px);grid-template-areas:"board side" "touch side";justify-content:center;column-gap:14px;row-gap:8px;align-items:start}
+      .detached-document .board-wrap{justify-content:flex-start}
+      .detached-document .hud{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:8px}
+      .detached-document .hud .box:nth-child(5){grid-column:1/-1}
+      .detached-document .control-card{grid-template-columns:1fr;gap:8px;padding:10px}
+      .detached-document .previews{grid-template-columns:1fr;gap:8px}
+      .detached-document .controls-legend{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media (max-width:619px){
+      .detached-header{padding:6px 8px}.detached-header img{height:30px}.detached-surface{padding:6px}
+      .detached-document #game-section{padding:8px}.detached-document #game{width:min(100%,420px,calc((100svh - 82px)/2))!important}
+      .detached-document .controls-legend{display:none}
     }
   `;
   document.head.appendChild(style);
 
-  sidePanel.insertBefore(controlsLegend, controlCard.nextSibling);
+  const playPrompt = document.createElement('button');
+  playPrompt.type = 'button';
+  playPrompt.className = 'board-start-prompt';
+  playPrompt.innerHTML = '<span aria-hidden="true">▶</span><span class="board-start-label"></span>';
+  boardWrap.appendChild(playPrompt);
 
-  const popoutButton = document.createElement('button');
-  popoutButton.type = 'button';
-  popoutButton.className = 'control display-popout';
-  popoutButton.innerHTML = '<span aria-hidden="true">↗</span> <span class="display-popout-label"></span>';
-  controlCard.insertAdjacentElement('afterend', popoutButton);
+  const moveButton = document.createElement('button');
+  moveButton.type = 'button';
+  moveButton.className = 'control display-popout';
+  moveButton.innerHTML = '<span aria-hidden="true">↗</span> <span class="display-popout-label"></span>';
+  controlCard.insertAdjacentElement('afterend', moveButton);
+  moveButton.insertAdjacentElement('afterend', controlsLegend);
+
+  const placeholder = document.createElement('section');
+  placeholder.className = 'card game-detached-placeholder';
+  placeholder.hidden = true;
+  placeholder.innerHTML = '<p class="game-detached-message"></p><button class="control btn-accent game-return-button" type="button"></button>';
 
   let displayWindow = null;
-  let displayFrame = 0;
-  let displayUi = null;
-  let lastLanguage = '';
+  let displayMonitor = 0;
+  let detached = false;
+  let shuttingDown = false;
 
-  function updateMainButtonCopy() {
-    const label = popoutButton.querySelector('.display-popout-label');
-    if (label) label.textContent = text().display;
-    popoutButton.setAttribute('aria-label', text().display);
-  }
+  const nativeRequestAnimationFrame = window.requestAnimationFrame.bind(window);
+  const nativeCancelAnimationFrame = window.cancelAnimationFrame.bind(window);
+  let renderHost = null;
+  let frameToken = 1;
+  const scheduledFrames = new Map();
 
-  function displayDocument() {
-    return `<!doctype html>
-<html lang="${language()}">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>${text().displayTitle}</title>
-<style>
-  :root{color-scheme:dark;--bg:#0b0d11;--card:#111522;--border:#232b3a;--text:#e7e9ee;--muted:#93a0b4;--accent:#22d3ee}
-  *{box-sizing:border-box}html,body{height:100%;margin:0}body{overflow:hidden;background:var(--bg);color:var(--text);font:400 14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial,sans-serif}
-  button{font:inherit}.shell{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:10px;padding:10px}
-  .board-wrap{min-width:0;min-height:0;display:grid;place-items:center;position:relative}
-  #display-game{width:min(100%,480px,calc((100svh - 20px)/2));aspect-ratio:1/2;background:#0c0f15;border:1px solid #1d2432;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.35);image-rendering:pixelated}
-  .side{min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px}.hud{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.stat{padding:8px 6px;text-align:center;background:#0f131b;border:1px solid #1f2736;border-radius:10px}.stat.best{grid-column:1/-1}.stat strong{display:block;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.stat span{display:block;margin-top:2px;font-size:17px;font-weight:800}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:8px}.preview-label{text-align:center;margin:4px 0 0;color:var(--muted);font-size:10px}.next{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}.next canvas,.hold canvas{width:100%;aspect-ratio:1/1;background:#0c0f15;border:1px solid #1d2432;border-radius:8px;image-rendering:pixelated}.hold canvas{display:block;max-width:76px;margin:auto}.actions{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}.action{appearance:none;border:1px solid #293246;background:#121827;color:var(--text);padding:8px 6px;border-radius:9px;cursor:pointer;font-weight:650}.action:hover{background:#172036}.action:disabled{opacity:.45;cursor:default}
-  .status{min-height:18px;text-align:center;color:var(--muted);font-size:11px}
-  .display-overlay{position:absolute;inset:0;display:none;place-items:center;padding:16px;background:rgba(0,0,0,.64);border-radius:14px}.display-overlay.visible{display:grid}.display-modal{width:min(300px,90%);padding:16px;text-align:center;background:#0f131b;border:1px solid #2a3446;border-radius:14px}.display-modal h2{margin:0 0 6px;font-size:20px}.display-modal p{margin:0 0 12px;color:var(--muted)}.overlay-actions{display:flex;justify-content:center;gap:6px}
-  @media(max-width:620px){body{overflow:auto}.shell{min-height:100%;height:auto;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}.board-wrap{min-height:0}#display-game{width:min(100%,480px,calc((100svh - 150px)/2))}.side{overflow:visible;display:grid;grid-template-columns:1fr 1fr;gap:6px}.hud{grid-column:1/-1;grid-template-columns:repeat(5,minmax(0,1fr))}.stat.best{grid-column:auto}.stat span{font-size:14px}.previews{grid-column:1/-1;display:grid;grid-template-columns:1.5fr .5fr;gap:6px}.actions{grid-column:1/-1;grid-template-columns:repeat(4,1fr)}.status{grid-column:1/-1}}
-  @media(max-width:430px){.shell{padding:6px;gap:6px}#display-game{width:min(100%,calc((100svh - 126px)/2))}.previews{display:none}.side{grid-template-columns:1fr}.hud{grid-template-columns:repeat(5,minmax(0,1fr))}.actions{grid-template-columns:repeat(4,1fr)}}
-</style>
-</head>
-<body>
-<div class="shell">
-  <div class="board-wrap">
-    <canvas id="display-game" width="200" height="400" aria-label="Tetristeza"></canvas>
-    <div id="display-overlay" class="display-overlay"><div class="display-modal"><h2 id="display-overlay-title"></h2><p id="display-overlay-message"></p><div class="overlay-actions"><button id="display-primary" class="action" type="button"></button><button id="display-secondary" class="action" type="button"></button></div></div></div>
-  </div>
-  <aside class="side">
-    <div class="hud">
-      <div class="stat"><strong data-label="score"></strong><span id="display-score">0</span></div>
-      <div class="stat"><strong data-label="lines"></strong><span id="display-lines">0</span></div>
-      <div class="stat"><strong data-label="level"></strong><span id="display-level">1</span></div>
-      <div class="stat"><strong data-label="mood"></strong><span id="display-mood">—</span></div>
-      <div class="stat best"><strong data-label="best"></strong><span id="display-best">0</span></div>
-    </div>
-    <div class="previews">
-      <div class="card"><div class="next"><canvas id="display-next-1"></canvas><canvas id="display-next-2"></canvas><canvas id="display-next-3"></canvas></div><p class="preview-label" data-label="next"></p></div>
-      <div class="card hold"><canvas id="display-hold"></canvas><p class="preview-label" data-label="hold"></p></div>
-    </div>
-    <div class="actions"><button id="display-start" class="action" type="button"></button><button id="display-pause" class="action" type="button"></button><button id="display-reset" class="action" type="button"></button><button id="display-mute" class="action" type="button"></button></div>
-    <div id="display-status" class="status"></div>
-  </aside>
-</div>
-</body>
-</html>`;
-  }
-
-  function popupElement(id) {
-    return displayWindow?.document.getElementById(id) || null;
-  }
-
-  function fitMirrorCanvas(canvas, aspect = 1) {
-    if (!canvas || !displayWindow || displayWindow.closed) return null;
-    const dpr = Math.max(1, displayWindow.devicePixelRatio || 1);
-    const rect = canvas.getBoundingClientRect();
-    const cssWidth = Math.max(1, rect.width);
-    const cssHeight = Math.max(1, aspect === 2 ? cssWidth * 2 : rect.height || cssWidth);
-    const width = Math.max(1, Math.round(cssWidth * dpr));
-    const height = Math.max(1, Math.round(cssHeight * dpr));
-    if (canvas.width !== width || canvas.height !== height) {
-      canvas.width = width;
-      canvas.height = height;
+  window.requestAnimationFrame = callback => {
+    const host = renderHost && !renderHost.closed ? renderHost : window;
+    const request = host === window ? nativeRequestAnimationFrame : host.requestAnimationFrame.bind(host);
+    const cancel = host === window ? nativeCancelAnimationFrame : host.cancelAnimationFrame.bind(host);
+    const token = frameToken++;
+    let nativeId = 0;
+    try {
+      nativeId = request(() => {
+        scheduledFrames.delete(token);
+        callback(window.performance.now());
+      });
+      scheduledFrames.set(token, {cancel, nativeId});
+    } catch {
+      nativeId = nativeRequestAnimationFrame(() => {
+        scheduledFrames.delete(token);
+        callback(window.performance.now());
+      });
+      scheduledFrames.set(token, {cancel: nativeCancelAnimationFrame, nativeId});
     }
-    const ctx = canvas.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    return {canvas, ctx, dpr, cssWidth, cssHeight};
+    return token;
+  };
+
+  window.cancelAnimationFrame = token => {
+    const scheduled = scheduledFrames.get(token);
+    if (!scheduled) {
+      try { nativeCancelAnimationFrame(token); } catch {}
+      return;
+    }
+    scheduledFrames.delete(token);
+    try { scheduled.cancel(scheduled.nativeId); } catch {}
+  };
+
+  function overlayVisible() {
+    return overlay.getAttribute('aria-hidden') === 'false';
   }
 
-  function copyCanvas(source, target, aspect = 1) {
-    if (!source || !target) return;
-    const fit = fitMirrorCanvas(target, aspect);
-    if (!fit) return;
-    fit.ctx.clearRect(0, 0, fit.cssWidth, fit.cssHeight);
-    fit.ctx.drawImage(source, 0, 0, source.width, source.height, 0, 0, fit.cssWidth, fit.cssHeight);
+  function isPlaying() {
+    return Boolean(startButton.disabled) && !overlayVisible() && document.body.classList.contains('game-active');
   }
 
-  function proxyClick(source) {
-    if (!source || source.disabled) return;
-    source.click();
-    setTimeout(() => {
-      try { displayWindow?.focus(); } catch {}
-    }, 0);
+  function restartRenderCycleIfPlaying() {
+    if (!isPlaying() || pauseButton.disabled) return;
+    pauseButton.click();
+    pauseButton.click();
   }
 
-  const gameKeyCodes = new Set(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp','Space','KeyC','KeyP','KeyR','KeyG','KeyM','KeyX','KeyZ']);
-
-  function forwardKeyboardEvent(type, event) {
-    if (!gameKeyCodes.has(event.code)) return;
-    event.preventDefault();
-    const forwarded = new KeyboardEvent(type, {
-      key: event.key,
-      code: event.code,
-      location: event.location,
-      ctrlKey: event.ctrlKey,
-      shiftKey: event.shiftKey,
-      altKey: event.altKey,
-      metaKey: event.metaKey,
-      repeat: event.repeat,
-      bubbles: true,
-      cancelable: true
-    });
-    document.dispatchEvent(forwarded);
+  function releaseMainInert() {
+    mainRegions.forEach(region => { region.inert = false; });
   }
 
-  function syncDisplayLanguage() {
-    if (!displayWindow || displayWindow.closed) return;
-    const lang = language();
-    if (lastLanguage === lang) return;
-    lastLanguage = lang;
+  function syncDetachedInert() {
+    if (!detached) return;
+    releaseMainInert();
+    gameSection.inert = overlayVisible();
+  }
+
+  function suppressReadyOverlay() {
+    if (overlay.dataset.state !== 'ready') return;
+    if (overlay.style.display !== 'none') overlay.style.display = 'none';
+    if (overlay.getAttribute('aria-hidden') !== 'true') overlay.setAttribute('aria-hidden', 'true');
+    releaseMainInert();
+    gameSection.inert = false;
+    document.body.classList.remove('game-active');
+  }
+
+  function detachedTranslation() {
+    return copy[language()] || copy.en;
+  }
+
+  function syncMovedLanguage() {
+    const c = detachedTranslation();
+    if (detached && displayWindow && !displayWindow.closed) {
+      displayWindow.document.documentElement.lang = language();
+      displayWindow.document.title = c.displayTitle;
+    }
+
+    if (detached) {
+      gameSection.querySelectorAll('[data-i18n]').forEach(node => {
+        const value = c[node.dataset.i18n];
+        if (value) node.textContent = value;
+      });
+      const switcher = overlay.querySelector('.language-switcher');
+      if (switcher) switcher.setAttribute('aria-label', c.languageSwitcher);
+      overlay.querySelectorAll('.lang-btn').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.lang === language())));
+      gameCanvas.setAttribute('aria-label', c.board);
+      [1,2,3].forEach(index => gameSection.querySelector(`#next-${index}`)?.setAttribute('aria-label', `${c.nextPiece} ${index}`));
+      gameSection.querySelector('#hold')?.setAttribute('aria-label', c.holdPiece);
+      const actKeys = {left:'moveLeft',rotate:'rotate',right:'moveRight',down:'softDrop',drop:'hardDrop',hold:'holdPiece',pause:'pause'};
+      gameSection.querySelectorAll('[data-act]').forEach(button => {
+        const key = actKeys[button.dataset.act];
+        if (key && c[key]) button.setAttribute('aria-label', c[key]);
+      });
+    }
+
+    updateLocalCopy();
+  }
+
+  function updateLocalCopy() {
     const c = text();
-    displayWindow.document.documentElement.lang = lang;
-    displayWindow.document.title = c.displayTitle;
-    displayWindow.document.querySelectorAll('[data-label]').forEach(node => {
-      const key = node.dataset.label;
-      node.textContent = c[key] || key;
-    });
-    popupElement('display-start').textContent = c.start;
-    popupElement('display-pause').textContent = c.pause;
-    popupElement('display-reset').textContent = c.reset;
-    popupElement('display-mute').textContent = c.mute;
-  }
-
-  function syncDisplayState() {
-    if (!displayWindow || displayWindow.closed || !displayUi) return;
-    syncDisplayLanguage();
-
-    Object.entries(mainStats).forEach(([key, source]) => {
-      const target = displayUi.stats[key];
-      if (source && target && target.textContent !== source.textContent) target.textContent = source.textContent;
-    });
-
-    copyCanvas(gameCanvas, displayUi.game, 2);
-    mainNext.forEach((source, index) => copyCanvas(source, displayUi.next[index], 1));
-    copyCanvas(mainHold, displayUi.hold, 1);
-
-    displayUi.start.disabled = Boolean(mainStart?.disabled);
-    displayUi.pause.disabled = Boolean(mainPause?.disabled);
-    displayUi.mute.textContent = `${mainMuteIcon?.textContent || '🔈'} ${mainMuteLabel?.textContent || text().mute}`;
-
-    const overlayVisible = mainOverlay?.getAttribute('aria-hidden') === 'false';
-    displayUi.overlay.classList.toggle('visible', overlayVisible);
-    if (overlayVisible) {
-      displayUi.overlayTitle.textContent = mainOverlayTitle?.textContent || '';
-      displayUi.overlayMessage.textContent = mainOverlayMessage?.textContent || '';
-      displayUi.primary.textContent = mainOverlayPrimary?.textContent || text().start;
-      displayUi.secondary.textContent = mainOverlaySecondary?.textContent || text().reset;
-      displayUi.primary.disabled = Boolean(mainOverlayPrimary?.disabled);
-      displayUi.secondary.disabled = Boolean(mainOverlaySecondary?.disabled);
-    }
-
-    displayUi.status.textContent = document.body.classList.contains('game-active') ? '' : (overlayVisible ? mainOverlayTitle?.textContent || '' : '');
-    displayFrame = displayWindow.requestAnimationFrame(syncDisplayState);
-  }
-
-  function closeDisplayReference() {
-    if (displayFrame && displayWindow && !displayWindow.closed) {
-      try { displayWindow.cancelAnimationFrame(displayFrame); } catch {}
-    }
-    displayFrame = 0;
-    displayUi = null;
-    displayWindow = null;
-  }
-
-  function openDisplay() {
+    moveButton.querySelector('.display-popout-label').textContent = c.moveWindow;
+    moveButton.setAttribute('aria-label', c.moveWindow);
+    playPrompt.querySelector('.board-start-label').textContent = c.play;
+    playPrompt.setAttribute('aria-label', c.play);
+    placeholder.querySelector('.game-detached-message').textContent = c.detached;
+    placeholder.querySelector('.game-return-button').textContent = c.returnPage;
     if (displayWindow && !displayWindow.closed) {
+      const returnButton = displayWindow.document.getElementById('detached-return');
+      if (returnButton) returnButton.textContent = c.returnPage;
+      displayWindow.document.title = c.displayTitle;
+    }
+  }
+
+  function syncPopupGameState() {
+    if (!detached || !displayWindow || displayWindow.closed) return;
+    displayWindow.document.body.classList.toggle('game-active', document.body.classList.contains('game-active'));
+    syncDetachedInert();
+  }
+
+  function cloneStylesTo(targetDocument) {
+    document.querySelectorAll('style').forEach(source => {
+      const cloned = targetDocument.createElement('style');
+      cloned.textContent = source.textContent;
+      targetDocument.head.appendChild(cloned);
+    });
+  }
+
+  function buildDisplayWindow() {
+    const c = text();
+    const popup = window.open('', 'tetristeza-game-window', 'popup=yes,width=780,height=900,resizable=yes,scrollbars=yes');
+    if (!popup) {
+      moveButton.title = c.blocked;
+      return null;
+    }
+
+    popup.document.open();
+    popup.document.write('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="dark"><title>Tetristeza</title></head><body class="detached-document"><header class="detached-header"><img id="detached-logo" alt="Tetristeza"><button id="detached-return" class="control btn-accent" type="button"></button></header><main id="detached-surface" class="detached-surface"></main></body></html>');
+    popup.document.close();
+    cloneStylesTo(popup.document);
+    const logo = popup.document.getElementById('detached-logo');
+    logo.src = new URL('assets/branding/tetristeza-logo-1.svg', document.baseURI).href;
+    popup.document.getElementById('detached-return').textContent = c.returnPage;
+    popup.document.documentElement.lang = language();
+    popup.document.title = c.displayTitle;
+    return popup;
+  }
+
+  const gameKeys = new Set(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp','Space','KeyC','KeyP','KeyR','KeyG','KeyM','KeyX','KeyZ']);
+
+  function forwardKeyboard(type, event) {
+    if (!gameKeys.has(event.code)) return;
+    event.preventDefault();
+    document.dispatchEvent(new KeyboardEvent(type, {
+      key: event.key, code: event.code, location: event.location, repeat: event.repeat,
+      ctrlKey: event.ctrlKey, shiftKey: event.shiftKey, altKey: event.altKey, metaKey: event.metaKey,
+      bubbles: true, cancelable: true
+    }));
+  }
+
+  function attachPopupListeners(popup) {
+    popup.document.getElementById('detached-return').addEventListener('click', () => returnToPage());
+    popup.document.addEventListener('keydown', event => forwardKeyboard('keydown', event));
+    popup.document.addEventListener('keyup', event => forwardKeyboard('keyup', event));
+    popup.addEventListener('blur', () => {
+      ['ArrowLeft','ArrowRight','ArrowDown'].forEach(code => document.dispatchEvent(new KeyboardEvent('keyup', {code, bubbles:true})));
+    });
+    popup.addEventListener('beforeunload', () => {
+      if (!shuttingDown && detached) returnToPage({fromPopupClose:true});
+    });
+  }
+
+  function detachToWindow() {
+    if (detached && displayWindow && !displayWindow.closed) {
       displayWindow.focus();
       return;
     }
 
-    displayWindow = window.open('', 'tetristeza-display', 'popup=yes,width=760,height=900,resizable=yes,scrollbars=no');
-    if (!displayWindow) {
-      popoutButton.title = text().blocked;
-      return;
-    }
+    const popup = buildDisplayWindow();
+    if (!popup) return;
 
-    displayWindow.document.open();
-    displayWindow.document.write(displayDocument());
-    displayWindow.document.close();
+    const parent = gameSection.parentNode;
+    parent.replaceChild(placeholder, gameSection);
+    placeholder.hidden = false;
+    popup.document.getElementById('detached-surface').appendChild(gameSection);
+    popup.document.body.appendChild(overlay);
 
-    displayUi = {
-      game: popupElement('display-game'),
-      next: [1, 2, 3].map(index => popupElement(`display-next-${index}`)),
-      hold: popupElement('display-hold'),
-      stats: {
-        score: popupElement('display-score'), lines: popupElement('display-lines'), level: popupElement('display-level'),
-        mood: popupElement('display-mood'), best: popupElement('display-best')
-      },
-      start: popupElement('display-start'), pause: popupElement('display-pause'), reset: popupElement('display-reset'), mute: popupElement('display-mute'),
-      status: popupElement('display-status'), overlay: popupElement('display-overlay'), overlayTitle: popupElement('display-overlay-title'),
-      overlayMessage: popupElement('display-overlay-message'), primary: popupElement('display-primary'), secondary: popupElement('display-secondary')
-    };
+    displayWindow = popup;
+    detached = true;
+    renderHost = popup;
+    document.body.classList.add('display-detached');
+    syncMovedLanguage();
+    syncPopupGameState();
+    attachPopupListeners(popup);
+    restartRenderCycleIfPlaying();
+    window.dispatchEvent(new Event('resize'));
+    try { popup.focus(); } catch {}
 
-    lastLanguage = '';
-    syncDisplayLanguage();
-
-    displayUi.start.addEventListener('click', () => proxyClick(mainStart));
-    displayUi.pause.addEventListener('click', () => proxyClick(mainPause));
-    displayUi.reset.addEventListener('click', () => proxyClick(mainReset));
-    displayUi.mute.addEventListener('click', () => proxyClick(mainMute));
-    displayUi.primary.addEventListener('click', () => proxyClick(mainOverlayPrimary));
-    displayUi.secondary.addEventListener('click', () => proxyClick(mainOverlaySecondary));
-    displayWindow.document.addEventListener('keydown', event => forwardKeyboardEvent('keydown', event));
-    displayWindow.document.addEventListener('keyup', event => forwardKeyboardEvent('keyup', event));
-    displayWindow.addEventListener('blur', () => {
-      ['ArrowLeft','ArrowRight','ArrowDown'].forEach(code => {
-        document.dispatchEvent(new KeyboardEvent('keyup', {code, bubbles: true}));
-      });
-    });
-    displayWindow.addEventListener('beforeunload', closeDisplayReference, {once: true});
-
-    displayFrame = displayWindow.requestAnimationFrame(syncDisplayState);
-    displayWindow.focus();
+    clearInterval(displayMonitor);
+    displayMonitor = window.setInterval(() => {
+      if (detached && (!displayWindow || displayWindow.closed)) returnToPage({fromPopupClose:true});
+    }, 500);
   }
 
-  popoutButton.addEventListener('click', openDisplay);
-  document.querySelectorAll('.lang-btn').forEach(button => button.addEventListener('click', () => setTimeout(updateMainButtonCopy, 0)));
+  function returnToPage({fromPopupClose=false}={}) {
+    if (!detached) return;
+    const popup = displayWindow;
+    const wasOverlayVisible = overlayVisible();
+
+    renderHost = null;
+    placeholder.replaceWith(gameSection);
+    document.body.appendChild(overlay);
+    placeholder.hidden = true;
+    detached = false;
+    document.body.classList.remove('display-detached');
+    gameSection.inert = false;
+
+    if (wasOverlayVisible && overlay.dataset.state !== 'ready') mainRegions.forEach(region => { region.inert = true; });
+    else releaseMainInert();
+
+    restartRenderCycleIfPlaying();
+    window.dispatchEvent(new Event('resize'));
+    clearInterval(displayMonitor);
+    displayMonitor = 0;
+    displayWindow = null;
+
+    if (!fromPopupClose && popup && !popup.closed) {
+      try { popup.close(); } catch {}
+    }
+  }
+
+  playPrompt.addEventListener('click', () => {
+    if (!startButton.disabled) startButton.click();
+  });
+  moveButton.addEventListener('click', detachToWindow);
+  placeholder.querySelector('.game-return-button').addEventListener('click', () => returnToPage());
+
+  document.querySelectorAll('.lang-btn').forEach(button => button.addEventListener('click', () => setTimeout(syncMovedLanguage, 0)));
+
+  new MutationObserver(() => {
+    suppressReadyOverlay();
+    syncPopupGameState();
+  }).observe(overlay, {attributes:true, attributeFilter:['aria-hidden','style','data-state']});
+
+  new MutationObserver(() => syncPopupGameState()).observe(document.body, {attributes:true, attributeFilter:['class']});
+  new MutationObserver(() => syncMovedLanguage()).observe(document.documentElement, {attributes:true, attributeFilter:['lang']});
+  new MutationObserver(records => {
+    if (!detached || !displayWindow || displayWindow.closed) return;
+    records.forEach(record => record.addedNodes.forEach(node => {
+      if (!(node instanceof HTMLStyleElement)) return;
+      const cloned = displayWindow.document.createElement('style');
+      cloned.textContent = node.textContent;
+      displayWindow.document.head.appendChild(cloned);
+    }));
+  }).observe(document.head, {childList:true});
+
   window.addEventListener('beforeunload', () => {
+    shuttingDown = true;
+    clearInterval(displayMonitor);
     try { if (displayWindow && !displayWindow.closed) displayWindow.close(); } catch {}
   });
 
-  updateMainButtonCopy();
+  suppressReadyOverlay();
+  updateLocalCopy();
 })();
