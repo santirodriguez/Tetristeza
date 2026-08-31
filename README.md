@@ -14,13 +14,11 @@
   <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Catalonia.svg" alt="Catalan Senyera" height="14" /> <strong>Català</strong>
 </p>
 
-Tetristeza is a lightweight browser game built with plain HTML5 Canvas and vanilla JavaScript.
-
-No accounts. No ads. No analytics. No external cloud service. Just blocks, poor decisions, and a scoreboard.
+Tetristeza is a lightweight browser game built with plain HTML5 Canvas and vanilla JavaScript. Open it, play a few lines, make one terrible decision, repeat as needed.
 
 ## Why
 
-I wanted a lightweight falling-block game: open it, play it, close it. No launcher, no account, no dependency tree large enough to develop its own mood.
+I wanted a falling-block game that felt immediate: open it, play it, close it. Simple enough to stay out of the way, but with enough personality to make losing slightly more entertaining.
 
 Then I added Hold, Ghost, particles, actual moods, a global Top 10, and enough wall kicks to make the blocks slightly less vindictive.
 
@@ -44,7 +42,7 @@ Tetristeza keeps the falling-block essentials — **7-bag pieces, Hold, Ghost, a
 
 It plays with keyboard or touch, adapts the board to the available viewport, remembers your language and personal best, and includes a **global Top 10**. On desktop, the live game can also move into its own resizable window without starting a second session.
 
-Particles, tiny Web Audio noises, HiDPI rendering, and reduced-motion support are included. Frameworks, build tools, and package managers are not.
+Particles, tiny Web Audio noises, HiDPI rendering, and reduced-motion support give it a little polish without making the game feel heavier than it needs to be.
 
 ## Controls
 
@@ -83,7 +81,7 @@ It is intentionally an arcade leaderboard, not an esports anti-cheat department.
 
 ## Technical notes
 
-The game stays deliberately simple: plain HTML, CSS, and JavaScript, with no frontend build step or runtime dependencies. The global Top 10 is a small self-hosted PHP + SQLite service; opening `index.html` directly from disk falls back to an isolated local leaderboard.
+The game stays deliberately simple: plain HTML, CSS, and JavaScript. The global Top 10 is a small self-hosted PHP + SQLite service; opening `index.html` directly from disk falls back to an isolated local leaderboard.
 
 The detachable window moves the real game surface instead of mirroring it, so there is still only one board and one game state. Browser support follows modern standards across current Firefox, Chromium-based browsers, and Safari.
 
@@ -92,8 +90,6 @@ The leaderboard database stays outside the public document root by default; `TET
 ## Author
 
 Made by **[Santiago Rodriguez](https://santiagorodriguez.com)**.
-
-If Tetristeza stole a few minutes of your day and you don't regret them, there's also this entirely optional button:
 
 <a href="https://santiagorodriguez.com/donate"><img src="assets/badges/donate.svg" alt="Donate" height="52" /></a>
 
