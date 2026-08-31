@@ -14,19 +14,19 @@
   <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Catalonia.svg" alt="Catalan Senyera" height="14" /> <strong>Català</strong>
 </p>
 
-Tetristeza is a lightweight browser game built with plain HTML5 Canvas and vanilla JavaScript.
-
-No accounts. No ads. No analytics. No external cloud service. Just blocks, poor decisions, and a scoreboard.
+Tetristeza is a lightweight browser game built with plain HTML5 Canvas and vanilla JavaScript. Open it, play a few lines, make one terrible decision, repeat as needed.
 
 ## Why
 
-I wanted a lightweight falling-block game: open it, play it, close it. No launcher, no account, no dependency tree large enough to develop its own mood.
+I wanted a falling-block game that felt immediate: open it, play it, close it. Simple enough to stay out of the way, but with enough personality to make losing slightly more entertaining.
 
 Then I added Hold, Ghost, particles, actual moods, a global Top 10, and enough wall kicks to make the blocks slightly less vindictive.
 
 ## Play
 
-**Online:** the current stable v1.3.0 build is available at **https://santiagorodriguez.com/Tetristeza/**. The v1.4.0 work is currently being prepared in the repository.
+**Online:** play at **https://santiagorodriguez.com/Tetristeza/**.
+
+**Current release:** **v1.4.0**.
 
 **Local:** clone or download the repository, open `index.html`, and press Start. Opening it directly from disk uses an isolated local Top 10 for testing; an HTTP(S) deployment uses the real server leaderboard.
 
@@ -38,20 +38,11 @@ Then I added Hold, Ghost, particles, actual moods, a global Top 10, and enough w
 
 ## What it does
 
-- **7-bag randomizer** for fair piece distribution
-- **Hold**, **3-piece Next queue**, and **Ghost** piece support
-- SRS-style clockwise and counter-clockwise rotation with wall/floor kicks
-- Smooth movement with **DAS/ARR**, soft drop, and hard drop
-- Finite lock-delay resets so pieces cannot be stalled forever
-- **Scoring, combos, back-to-back bonuses, and levels**
-- **Global Top 10** with names up to 8 characters and an optional private email
-- Lightweight particles and minimal audio through the Web Audio API
-- Responsive keyboard and Pointer Events controls for mouse/touch/pen
-- Viewport-aware playfield sizing so the complete board stays visible at normal browser zoom
-- Optional **detachable game window** that moves the live playfield instead of duplicating it
-- Persistent language preference and personal best stored locally in the browser
-- HiDPI Canvas rendering and reduced-motion support
-- No framework, package manager, compiler, or runtime dependency for the game itself
+Tetristeza keeps the falling-block essentials — **7-bag pieces, Hold, Ghost, a 3-piece Next queue, scoring, combos, levels, and back-to-back bonuses** — with SRS-style rotation and a finite lock delay so pieces eventually have to accept their fate.
+
+It plays with keyboard or touch, adapts the board to the available viewport, remembers your language and personal best, and includes a **global Top 10**. On desktop, the live game can also move into its own resizable window without starting a second session.
+
+Particles, tiny Web Audio noises, HiDPI rendering, and reduced-motion support give it a little polish without making the game feel heavier than it needs to be.
 
 ## Controls
 
@@ -88,21 +79,19 @@ At Game Over, a qualifying score can join the global Top 10 with a name of up to
 
 It is intentionally an arcade leaderboard, not an esports anti-cheat department.
 
-## Author
-
-[Santiago Rodriguez](https://santiagorodriguez.com)
-
-<a href="https://santiagorodriguez.com/donate"><img src="assets/badges/donate.svg" alt="Donate" height="52" /></a>
-
 ## Technical notes
 
-The game stays in plain HTML/CSS/JavaScript. `assets/js/leaderboard.js` is a small browser bootstrap: it loads the leaderboard implementation from `assets/js/leaderboard-core.js` and then the detachable-window behavior from `assets/js/display.js`. The leaderboard uses a single self-hosted `api/scores.php` endpoint backed by SQLite.
+The game stays deliberately simple: plain HTML, CSS, and JavaScript. The global Top 10 is a small self-hosted PHP + SQLite service; opening `index.html` directly from disk falls back to an isolated local leaderboard.
 
-The detachable window is opened only by an explicit user action. The actual game section and overlay move between documents, so there is only one playfield and one game state; the animation loop follows the window that currently owns the game surface.
+The detachable window moves the real game surface instead of mirroring it, so there is still only one board and one game state. Browser support follows modern standards across current Firefox, Chromium-based browsers, and Safari.
 
-The SQLite database lives outside the public document root by default. Set `TETRISTEZA_DB_PATH` only when a different private server path is needed.
+The leaderboard database stays outside the public document root by default; `TETRISTEZA_DB_PATH` can point it somewhere else when needed.
 
-The repository intentionally has no frontend build step. Browser compatibility follows current standards supported across modern Firefox, Chromium-based browsers, and Safari rather than browser-specific forks.
+## Author
+
+Made by **[Santiago Rodriguez](https://santiagorodriguez.com)**.
+
+<a href="https://santiagorodriguez.com/donate"><img src="assets/badges/donate.svg" alt="Donate" height="52" /></a>
 
 ## License
 
