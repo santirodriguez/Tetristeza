@@ -325,8 +325,12 @@
 
   const gameKeys = new Set(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp','Space','Escape','KeyC','KeyP','KeyR','KeyG','KeyM','KeyX','KeyZ']);
 
+  function isInteractiveKeyboardTarget(target) {
+    return Boolean(target && typeof target.closest === 'function' && target.closest('button,input,select,textarea,a,[contenteditable]:not([contenteditable="false"])'));
+  }
+
   function forwardKeyboard(type, event) {
-    if (!gameKeys.has(event.code)) return;
+    if (!gameKeys.has(event.code) || isInteractiveKeyboardTarget(event.target)) return;
     event.preventDefault();
     document.dispatchEvent(new KeyboardEvent(type, {
       key: event.key, code: event.code, location: event.location, repeat: event.repeat,
