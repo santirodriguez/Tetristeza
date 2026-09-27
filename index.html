@@ -85,14 +85,14 @@
     button.btn-accent{background:linear-gradient(180deg,#1b2639,#151a28);border-color:#36506c;box-shadow:inset 0 1px 0 rgba(34,211,238,.08)}
     button.btn-accent:hover{background:linear-gradient(180deg,#213149,#171d2d);border-color:#44708f}
     .touch-wrap{grid-area:touch;margin-top:0}
-    .touch{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+    .touch{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:6px}
     .touch .control{padding-inline:5px;min-height:48px;touch-action:none}
     .help{color:var(--muted);font-size:12px;margin:8px 0 0}
     .about{margin-top:18px}
     .about p{margin-bottom:0}
     .footer{opacity:.72;text-align:center;padding:22px 0;border-top:1px solid var(--border);margin-top:26px;font-size:13px}
-    .overlay{position:fixed;inset:0;display:none;place-items:center;padding:20px;background:radial-gradient(600px 400px at 50% 30%,rgba(124,58,237,.09),transparent 60%),rgba(0,0,0,.58);z-index:1000}
-    .overlay .modal{background:linear-gradient(180deg,#0f131b,#0c1018);border:1px solid #222a3a;border-radius:16px;padding:20px;min-width:min(320px,90vw);text-align:center;box-shadow:var(--shadow)}
+    .overlay{position:fixed;inset:0;display:none;place-items:center;padding:20px;background:radial-gradient(600px 400px at 50% 30%,rgba(124,58,237,.09),transparent 60%),rgba(0,0,0,.58);z-index:1000;overflow:auto;overscroll-behavior:contain}
+    .overlay .modal{background:linear-gradient(180deg,#0f131b,#0c1018);border:1px solid #222a3a;border-radius:16px;padding:20px;min-width:min(320px,90vw);max-width:min(460px,94vw);max-height:calc(100svh - 24px);overflow:auto;overscroll-behavior:contain;text-align:center;box-shadow:var(--shadow)}
     .overlay h3{margin:0 0 10px}.overlay p{margin:8px 0 12px;color:var(--muted)}
     .overlay-emoji{font-size:clamp(56px,10vw,120px);line-height:1;margin-bottom:6px;display:none}
     .overlay-language{justify-content:center;margin:0 0 12px}
@@ -111,9 +111,24 @@
       .hold-preview canvas{max-width:92px}
       .actions{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
+    @media (min-width:701px) and (max-width:919px){
+      .grid{grid-template-columns:minmax(300px,1.45fr) minmax(220px,.85fr);grid-template-areas:"board side" "touch side";justify-content:center;column-gap:14px;row-gap:8px;align-items:start}
+      .board-wrap{justify-content:flex-start}
+      #game{width:min(100%,460px,calc((100svh - 72px)/2))}
+      .hud{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-bottom:8px}
+      .hud .box{padding:7px 5px}
+      .hud .box:nth-child(5){grid-column:1/-1}
+      .control-card{grid-template-columns:1fr;gap:7px;padding:8px}
+      .previews{grid-template-columns:1fr;gap:6px}
+      .next-stack canvas{max-width:58px}
+      .hold-preview canvas{max-width:68px}
+      .actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+      .actions .control{min-height:44px;padding:7px 5px;font-size:12px}
+      .touch{grid-template-columns:repeat(5,minmax(0,1fr))}
+    }
     @media (max-width:700px){
       .wrap{padding:10px max(8px,env(safe-area-inset-right)) 16px max(8px,env(safe-area-inset-left))}
-      body.game-active main.wrap{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
+      body.game-active main.wrap{padding-top:6px;padding-bottom:calc(112px + env(safe-area-inset-bottom))}
       .nav .wrap{padding-top:max(5px,env(safe-area-inset-top));padding-bottom:5px;padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
       .brand-row{gap:8px;min-height:42px}
       .brand img{height:40px;max-width:calc(100vw - 156px)}
@@ -123,7 +138,6 @@
       .section-title{margin-bottom:8px;font-size:18px}
       .controls-legend{display:none}
       .grid{margin-top:0;gap:9px}
-      #game{width:min(100%,calc((100svh - 142px - env(safe-area-inset-bottom))/2));max-width:420px}
       .control-card{grid-template-columns:1fr;padding:10px}
       .actions{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
       .actions .control{padding:9px 5px;font-size:12px;min-height:44px}
@@ -133,43 +147,76 @@
       .preview{padding:7px}
       .next-stack canvas{max-width:58px}
       .hold-preview canvas{max-width:74px}
+      .touch{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+      .touch .control{min-height:48px;font-size:14px}
+      body.game-active .grid{grid-template-areas:"side" "board" "touch";gap:5px}
+      body.game-active .game-area{display:block}
+      body.game-active .hud{grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;margin-bottom:4px}
+      body.game-active .hud .box{padding:3px 2px;border-radius:8px}
+      body.game-active .hud strong{font-size:8px;line-height:1}
+      body.game-active .hud span{margin-top:1px;font-size:11px;line-height:1.1}
+      body.game-active #mood{font-size:9px}
+      body.game-active .control-card{grid-template-columns:minmax(0,1fr) auto;align-items:stretch;gap:5px;padding:4px 5px;border-radius:10px}
+      body.game-active .previews{grid-template-columns:minmax(0,2fr) minmax(68px,.8fr);gap:4px}
+      body.game-active .preview{padding:3px;border-radius:8px}
+      body.game-active .next-stack{gap:2px}
+      body.game-active .next-stack canvas{max-width:40px}
+      body.game-active .hold-preview canvas{max-width:46px}
+      body.game-active .preview-label{font-size:9px;line-height:1.1;margin:2px 0 0}
+      body.game-active .actions{grid-template-columns:repeat(2,minmax(52px,1fr));gap:4px;align-content:center}
+      body.game-active .actions #start,body.game-active .actions #pause{display:none}
+      body.game-active .actions .control{padding:5px 4px;min-height:44px;font-size:10px}
+      body.game-active #game{width:min(100%,420px,calc((100svh - 218px - env(safe-area-inset-bottom))/2));max-width:420px}
       body.game-active .touch-wrap{position:fixed;left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));z-index:60;margin:0;padding:6px;background:rgba(15,19,27,.94);border:1px solid #222a3a;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
-      .touch{gap:5px}
-      .touch .control{min-height:48px;font-size:16px}
       .help{display:none}
       .about{margin-top:10px}
       .footer{margin-top:16px;padding:16px max(10px,env(safe-area-inset-left)) max(16px,env(safe-area-inset-bottom))}
     }
-    @media (max-width:560px){
-      body.game-active main.wrap{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
-      #game{width:min(100%,calc((100svh - 176px - env(safe-area-inset-bottom))/2))}
-      .hud{grid-template-columns:repeat(3,minmax(0,1fr))}
-      .actions{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .touch{grid-template-columns:repeat(4,minmax(0,1fr))}
-    }
-    @media (max-width:560px) and (max-height:560px) and (orientation:portrait){
+    @media (max-width:560px) and (max-height:620px) and (orientation:portrait){
       body.game-active .nav{display:none}
-      body.game-active main.wrap{padding-top:6px}
-      body.game-active #game-section{padding:6px}
+      body.game-active main.wrap{padding-top:4px}
+      body.game-active #game-section{padding:4px}
       body.game-active .section-title{display:none}
-      body.game-active #game{width:min(100%,calc((100svh - 126px - env(safe-area-inset-bottom))/2))}
+      body.game-active #game{width:min(100%,calc((100svh - 210px - env(safe-area-inset-bottom))/2))}
+      body.game-active .hud .box{padding:2px 1px}
+      body.game-active .control-card{padding:3px}
+      body.game-active .next-stack canvas{max-width:34px}
+      body.game-active .hold-preview canvas{max-width:40px}
     }
     @media (any-pointer:coarse) and (orientation:landscape) and (max-height:600px){
       body.game-active .nav{display:none}
       body.game-active main.wrap{padding:6px calc(206px + env(safe-area-inset-right)) 6px max(6px,env(safe-area-inset-left))}
       body.game-active #game-section{padding:6px}
       body.game-active .section-title,body.game-active .controls-legend{display:none}
-      body.game-active .grid{margin-top:0;gap:6px}
-      body.game-active #game{width:min(100%,calc((100svh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))/2));min-width:0}
+      body.game-active .grid{grid-template-columns:minmax(150px,calc((100svh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))/2)) minmax(150px,1fr);grid-template-areas:"board side";margin-top:0;gap:6px;align-items:start}
+      body.game-active .board-wrap{justify-content:flex-start}
+      body.game-active #game{width:100%;min-width:0}
+      body.game-active .hud{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-bottom:5px}
+      body.game-active .hud .box{padding:4px 3px}
+      body.game-active .hud .box:nth-child(4),body.game-active .hud .box:nth-child(5){grid-column:auto}
+      body.game-active .control-card{grid-template-columns:minmax(0,1fr) minmax(100px,.65fr);gap:5px;padding:5px}
+      body.game-active .previews{grid-template-columns:minmax(0,1.7fr) minmax(66px,.8fr);gap:4px}
+      body.game-active .next-stack canvas{max-width:38px}
+      body.game-active .hold-preview canvas{max-width:44px}
+      body.game-active .preview{padding:3px}
+      body.game-active .preview-label{font-size:9px;margin:2px 0 0}
+      body.game-active .actions{grid-template-columns:repeat(2,minmax(48px,1fr));gap:4px}
+      body.game-active .actions #start,body.game-active .actions #pause{display:none}
+      body.game-active .actions .control{min-height:44px;padding:5px 3px;font-size:10px}
       body.game-active .touch-wrap{position:fixed;left:auto;right:max(8px,env(safe-area-inset-right));top:max(8px,env(safe-area-inset-top));bottom:max(8px,env(safe-area-inset-bottom));width:192px;z-index:60;margin:0;padding:6px;background:rgba(15,19,27,.94);border:1px solid #222a3a;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
-      body.game-active .touch{height:100%;grid-template-columns:repeat(2,minmax(0,1fr));align-content:center;gap:6px}
-      body.game-active .touch .control{min-height:42px;font-size:16px}
+      body.game-active .touch{height:100%;grid-template-columns:repeat(3,minmax(0,1fr));align-content:center;gap:6px}
+      body.game-active .touch .control{min-height:44px;font-size:13px}
       body.game-active .help{display:none}
     }
     @media (max-width:339px){
       .brand img{height:36px;max-width:calc(100vw - 142px)}
       .lang-btn{width:34px;height:34px}
-      .touch{grid-template-columns:repeat(4,minmax(0,1fr))}
+      .touch{grid-template-columns:repeat(5,minmax(0,1fr))}
+      body.game-active .touch .control{font-size:12px}
+    }
+    @media (max-height:520px){
+      .overlay{place-items:start center;padding:8px}
+      .overlay .modal{margin:auto 0;max-height:calc(100svh - 16px)}
     }
     @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
   </style>
@@ -278,9 +325,9 @@
   (()=>{"use strict";
     const STORAGE={best:'tetristeza:best',language:'tetristeza:language',sound:'tetristeza:sound',ghost:'tetristeza:ghost'};
     const translations={
-      en:{languageSwitcher:'Language selector',game:'Game',legendMove:'Move',legendRotate:'Rotate',legendDrop:'Drop',legendHold:'Hold',legendPause:'Pause',legendRestart:'Restart',legendGhost:'Ghost',legendSound:'Sound',score:'Score',lines:'Lines',level:'Level',mood:'Mood',best:'Best',next:'Next',hold:'Hold',start:'Start',pause:'Pause',reset:'Reset',mute:'Mute',unmute:'Unmute',holdButton:'HOLD',help:'Keyboard or on-screen controls.',about:'About the game',aboutCopy:'A small falling-block game. It’s quite sensitive, and for once I mean that literally.',ready:'Ready',readyMsg:'Whenever you’re ready.',resume:'Resume',paused:'Paused',pausedMsg:'No rush. The blocks can wait.',gameOver:'Game Over',playAgain:'Play again',scoreFinal:'Score: {score}',glow:'Glow',gloom:'Gloom',board:'Game board',nextPiece:'Next piece',holdPiece:'Hold piece',moveLeft:'Move left',rotate:'Rotate clockwise',rotateCCW:'Rotate counter-clockwise',moveRight:'Move right',softDrop:'Soft drop',hardDrop:'Hard drop',ghostButton:'GHOST'},
-      'es-AR':{languageSwitcher:'Selector de idioma',game:'Juego',legendMove:'Mover',legendRotate:'Rotar',legendDrop:'Caída',legendHold:'Guardar',legendPause:'Pausa',legendRestart:'Reiniciar',legendGhost:'Fantasma',legendSound:'Sonido',score:'Puntaje',lines:'Líneas',level:'Nivel',mood:'Ánimo',best:'Récord',next:'Siguientes',hold:'Guardar',start:'Jugar',pause:'Pausa',reset:'Reiniciar',mute:'Silenciar',unmute:'Activar sonido',holdButton:'GUARDAR',help:'Teclado o controles en pantalla.',about:'De qué trata el juego',aboutCopy:'Un jueguito de bloques que caen. Es bastante sensible y, por una vez, lo digo literalmente.',ready:'Todo listo',readyMsg:'Cuando quieras, arrancá.',resume:'Seguir',paused:'En pausa',pausedMsg:'Tranqui. Los bloques pueden esperar.',gameOver:'Partida finalizada',playAgain:'Volver a jugar',scoreFinal:'Puntaje: {score}',glow:'Brillo',gloom:'Tristeza',board:'Tablero de juego',nextPiece:'Próxima pieza',holdPiece:'Pieza guardada',moveLeft:'Mover a la izquierda',rotate:'Rotar a la derecha',rotateCCW:'Rotar a la izquierda',moveRight:'Mover a la derecha',softDrop:'Bajar',hardDrop:'Caída rápida',ghostButton:'FANTASMA'},
-      ca:{languageSwitcher:'Selector d’idioma',game:'Joc',legendMove:'Moure',legendRotate:'Girar',legendDrop:'Baixar',legendHold:'Reserva',legendPause:'Pausa',legendRestart:'Reiniciar',legendGhost:'Fantasma',legendSound:'So',score:'Puntuació',lines:'Línies',level:'Nivell',mood:'Ànim',best:'Rècord',next:'Següents',hold:'Reserva',start:'Juga',pause:'Pausa',reset:'Reinicia',mute:'Silencia',unmute:'Activa el so',holdButton:'RESERVA',help:'Teclat o controls en pantalla.',about:'De què va el joc',aboutCopy:'Un joc petit de blocs que cauen. És força sensible i, per una vegada, ho dic literalment.',ready:'Tot a punt',readyMsg:'Quan vulguis, comença.',resume:'Continua',paused:'En pausa',pausedMsg:'Cap pressa. Els blocs poden esperar.',gameOver:'Partida acabada',playAgain:'Torna a jugar',scoreFinal:'Puntuació: {score}',glow:'Brillantor',gloom:'Tristesa',board:'Tauler de joc',nextPiece:'Peça següent',holdPiece:'Peça reservada',moveLeft:'Mou a l’esquerra',rotate:'Gira a la dreta',rotateCCW:'Gira a l’esquerra',moveRight:'Mou a la dreta',softDrop:'Baixa',hardDrop:'Baixada ràpida',ghostButton:'FANTASMA'}
+      en:{languageSwitcher:'Language selector',controlsLabel:'Game controls',game:'Game',legendMove:'Move',legendRotate:'Rotate',legendDrop:'Drop',legendHold:'Hold',legendPause:'Pause',legendRestart:'Restart',legendGhost:'Ghost',legendSound:'Sound',score:'Score',lines:'Lines',level:'Level',mood:'Mood',best:'Best',next:'Next',hold:'Hold',start:'Start',pause:'Pause',reset:'Reset',mute:'Mute',unmute:'Unmute',holdButton:'HOLD',help:'Keyboard or on-screen controls.',about:'About the game',aboutCopy:'A small falling-block game. It’s quite sensitive, and for once I mean that literally.',ready:'Ready',readyMsg:'Whenever you’re ready.',resume:'Resume',paused:'Paused',pausedMsg:'No rush. The blocks can wait.',gameOver:'Game Over',playAgain:'Play again',scoreFinal:'Score: {score}',glow:'Glow',gloom:'Gloom',board:'Game board',nextPiece:'Next piece',holdPiece:'Hold piece',moveLeft:'Move left',rotate:'Rotate clockwise',rotateCCW:'Rotate counter-clockwise',moveRight:'Move right',softDrop:'Soft drop',hardDrop:'Hard drop',ghostButton:'GHOST'},
+      'es-AR':{languageSwitcher:'Selector de idioma',controlsLabel:'Controles del juego',game:'Juego',legendMove:'Mover',legendRotate:'Rotar',legendDrop:'Caída',legendHold:'Guardar',legendPause:'Pausa',legendRestart:'Reiniciar',legendGhost:'Fantasma',legendSound:'Sonido',score:'Puntaje',lines:'Líneas',level:'Nivel',mood:'Ánimo',best:'Récord',next:'Siguientes',hold:'Guardar',start:'Jugar',pause:'Pausa',reset:'Reiniciar',mute:'Silenciar',unmute:'Activar sonido',holdButton:'GUARDAR',help:'Teclado o controles en pantalla.',about:'De qué trata el juego',aboutCopy:'Un jueguito de bloques que caen. Es bastante sensible y, por una vez, lo digo literalmente.',ready:'Todo listo',readyMsg:'Cuando quieras, arrancá.',resume:'Seguir',paused:'En pausa',pausedMsg:'Tranqui. Los bloques pueden esperar.',gameOver:'Partida finalizada',playAgain:'Volver a jugar',scoreFinal:'Puntaje: {score}',glow:'Brillo',gloom:'Tristeza',board:'Tablero de juego',nextPiece:'Próxima pieza',holdPiece:'Pieza guardada',moveLeft:'Mover a la izquierda',rotate:'Rotar a la derecha',rotateCCW:'Rotar a la izquierda',moveRight:'Mover a la derecha',softDrop:'Bajar',hardDrop:'Caída rápida',ghostButton:'FANTASMA'},
+      ca:{languageSwitcher:'Selector d’idioma',controlsLabel:'Controls del joc',game:'Joc',legendMove:'Moure',legendRotate:'Girar',legendDrop:'Baixar',legendHold:'Reserva',legendPause:'Pausa',legendRestart:'Reiniciar',legendGhost:'Fantasma',legendSound:'So',score:'Puntuació',lines:'Línies',level:'Nivell',mood:'Ànim',best:'Rècord',next:'Següents',hold:'Reserva',start:'Juga',pause:'Pausa',reset:'Reinicia',mute:'Silencia',unmute:'Activa el so',holdButton:'RESERVA',help:'Teclat o controls en pantalla.',about:'De què va el joc',aboutCopy:'Un joc petit de blocs que cauen. És força sensible i, per una vegada, ho dic literalment.',ready:'Tot a punt',readyMsg:'Quan vulguis, comença.',resume:'Continua',paused:'En pausa',pausedMsg:'Cap pressa. Els blocs poden esperar.',gameOver:'Partida acabada',playAgain:'Torna a jugar',scoreFinal:'Puntuació: {score}',glow:'Brillantor',gloom:'Tristesa',board:'Tauler de joc',nextPiece:'Peça següent',holdPiece:'Peça reservada',moveLeft:'Mou a l’esquerra',rotate:'Gira a la dreta',rotateCCW:'Gira a l’esquerra',moveRight:'Mou a la dreta',softDrop:'Baixa',hardDrop:'Baixada ràpida',ghostButton:'FANTASMA'}
     };
     function storageGet(key,fallback){try{return localStorage.getItem(key)??fallback}catch{return fallback}}
     function storageSet(key,value){try{localStorage.setItem(key,value)}catch{}}
@@ -423,12 +470,12 @@
     function toggleSound(){audio.enabled=!audio.enabled;storageSet(STORAGE.sound,String(audio.enabled));if(audio.enabled)activateAudio();updateMuteButton();notifyState()}
     function showOverlay(title,msg,primary=t('resume'),secondary=t('reset'),emoji=null){document.body.classList.remove('game-active');overlay.dataset.state=overlayKind;oTitle.textContent=title;oMsg.textContent=msg;oPrimary.textContent=primary;oSecondary.textContent=secondary;if(emoji&&!reducedMotion){oEmoji.textContent=emoji;oEmoji.style.display='block';oEmoji.setAttribute('aria-hidden','false')}else{oEmoji.style.display='none';oEmoji.setAttribute('aria-hidden','true')}setBackgroundInert(true);overlay.style.display='grid';overlay.setAttribute('aria-hidden','false');modal.focus({preventScroll:true});notifyState()}
     function hideOverlay(){document.body.classList.add('game-active');overlay.dataset.state=overlayKind;overlay.style.display='none';overlay.setAttribute('aria-hidden','true');setBackgroundInert(false);canvas.focus({preventScroll:true});notifyState()}
-    function setPaused(nextPaused){if(!running||paused===nextPaused)return false;paused=nextPaused;clearKeys();if(paused){cancelGameFrame(rafId);rafId=0;overlayKind='paused';showOverlay(t('paused'),t('pausedMsg'),t('resume'),t('reset'),'🙂')}else{overlayKind='playing';hideOverlay();lastTime=performance.now();update(lastTime)}return true}
+    function setPaused(nextPaused){if(!running||paused===nextPaused)return false;paused=nextPaused;clearKeys();updateActionButtons();if(paused){cancelGameFrame(rafId);rafId=0;overlayKind='paused';showOverlay(t('paused'),t('pausedMsg'),t('resume'),t('reset'),'🙂')}else{overlayKind='playing';hideOverlay();lastTime=performance.now();update(lastTime)}return true}
     function togglePause(){setPaused(!paused)}
     function showReady(){overlayKind='ready';updateActionButtons();showOverlay(t('ready'),t('readyMsg'),t('start'),t('reset'),'🙂')}
     function restartGame(){running=true;cancelGameFrame(rafId);rafId=0;reset();spawn();updateActionButtons();overlayKind='playing';ensureAudio();hideOverlay();lastTime=performance.now();update(lastTime)}
     function dismissReadyOverlay(){if(overlayKind!=='ready'||!overlayVisible())return false;overlay.style.display='none';overlay.setAttribute('aria-hidden','true');setBackgroundInert(false);document.body.classList.remove('game-active');const active=overlay.ownerDocument?.activeElement;if(active&&typeof active.closest==='function'&&active.closest('#overlay'))active.blur?.();notifyState();return true}
-    function localizeRoot(root=document){root.querySelectorAll?.('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n)});root.querySelectorAll?.('[data-i18n-html]').forEach(el=>{el.innerHTML=t(el.dataset.i18nHtml)});root.querySelectorAll?.('.lang-btn').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.lang===language)));root.querySelectorAll?.('.language-switcher').forEach(el=>el.setAttribute('aria-label',t('languageSwitcher')));const acts={left:'moveLeft',rotate:'rotate',rotateCCW:'rotateCCW',right:'moveRight',down:'softDrop',drop:'hardDrop',hold:'holdPiece',ghost:'legendGhost',pause:paused?'resume':'pause'};root.querySelectorAll?.('[data-act]').forEach(btn=>{const key=acts[btn.dataset.act];if(key)btn.setAttribute('aria-label',t(key))});root.querySelector?.('#game')?.setAttribute('aria-label',t('board'));[1,2,3].forEach((n,i)=>root.querySelector?.(`#next-${n}`)?.setAttribute('aria-label',`${t('nextPiece')} ${i+1}`));root.querySelector?.('#hold')?.setAttribute('aria-label',t('holdPiece'));updateGhostButton();updateMuteButton();updateActionButtons()}
+    function localizeRoot(root=document){root.querySelectorAll?.('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n)});root.querySelectorAll?.('[data-i18n-html]').forEach(el=>{el.innerHTML=t(el.dataset.i18nHtml)});root.querySelectorAll?.('.lang-btn').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.lang===language)));root.querySelectorAll?.('.language-switcher').forEach(el=>el.setAttribute('aria-label',t('languageSwitcher')));root.querySelectorAll?.('.controls-legend').forEach(el=>el.setAttribute('aria-label',t('controlsLabel')));const acts={left:'moveLeft',rotate:'rotate',rotateCCW:'rotateCCW',right:'moveRight',down:'softDrop',drop:'hardDrop',hold:'holdPiece',ghost:'legendGhost',pause:paused?'resume':'pause'};root.querySelectorAll?.('[data-act]').forEach(btn=>{const key=acts[btn.dataset.act];if(key)btn.setAttribute('aria-label',t(key))});root.querySelector?.('#game')?.setAttribute('aria-label',t('board'));[1,2,3].forEach((n,i)=>root.querySelector?.(`#next-${n}`)?.setAttribute('aria-label',`${t('nextPiece')} ${i+1}`));root.querySelector?.('#hold')?.setAttribute('aria-label',t('holdPiece'));updateGhostButton();updateMuteButton();updateActionButtons()}
     function setLanguage(nextLanguage,{persist=true}={}){if(!translations[nextLanguage])return;language=nextLanguage;document.documentElement.lang=language==='es-AR'?'es-AR':language;localizeRoot(document);updateMoodLabel(true);if(persist)storageSet(STORAGE.language,language);if(overlayVisible()){if(overlayKind==='ready')showReady();else if(overlayKind==='paused')showOverlay(t('paused'),t('pausedMsg'),t('resume'),t('reset'),'🙂');else if(overlayKind==='gameOver')showOverlay(t('gameOver'),t('scoreFinal',{score}),t('playAgain'),t('reset'),'😢')}notifyLanguage()}
 
     function refreshRendering(){({ctx,dpr}=fitHiDPI(canvas));nextFits=nextCanvases.map(fitHiDPI);holdFit=fitHiDPI(holdCanvas);hctx=holdFit.ctx;drawBoard();drawQueue();drawMini(holdCanvas,hctx,holdType?ROTATIONS[holdType][0]:null,holdType?COLORS[holdType]:'#000')}

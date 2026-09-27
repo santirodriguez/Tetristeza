@@ -40,7 +40,7 @@ Then I added Hold, Ghost, particles, actual moods, a global Top 10, and enough w
 
 Tetristeza keeps the falling-block essentials — **7-bag pieces, Hold, Ghost, a 3-piece Next queue, scoring, combos, levels, and back-to-back bonuses** — with SRS-style rotation and a finite lock delay so pieces eventually have to accept their fate.
 
-It plays with keyboard or touch, adapts the board to the available viewport, remembers your language, personal best, sound preference, and Ghost preference, and includes a **global Top 10**. On desktop, the live game can also move into its own resizable window without starting a second session.
+It plays with keyboard or touch, adapts the board and compact HUD/previews to the available viewport, remembers your language, personal best, sound preference, and Ghost preference, and includes a **global Top 10**. On desktop, the live game can also move into its own resizable window without starting a second session.
 
 Particles, tiny Web Audio noises, HiDPI rendering, and reduced-motion support give it a little polish without making the game feel heavier than it needs to be.
 
