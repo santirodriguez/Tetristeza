@@ -63,12 +63,8 @@
       .control-hint kbd{min-width:22px;font-size:11px}
     }
     @media (max-width:700px){
-      .touch-wrap{display:block}
       body.game-active:not(.display-detached) .nav{display:none}
-      body.game-active:not(.display-detached) main.wrap{padding-top:6px;padding-bottom:calc(112px + env(safe-area-inset-bottom))}
-      body.game-active:not(.display-detached) #game-section{padding:6px}
       body.game-active:not(.display-detached) #game-section>.section-title{display:none}
-      body.game-active:not(.display-detached) #game{width:min(100%,420px,calc((100svh - 230px - env(safe-area-inset-bottom))/2))}
       .display-popout{display:none}
     }
     @media (any-pointer:coarse) and (orientation:landscape) and (max-height:600px){
@@ -95,8 +91,11 @@
     }
     @media (max-width:619px){
       .detached-header{padding:6px 8px}.detached-header img{height:30px}.detached-surface{padding:6px}
-      .detached-document #game-section{padding:8px}.detached-document #game{width:min(100%,420px,calc((100svh - 230px)/2))!important}
+      .detached-document #game-section{padding:8px}.detached-document #game{width:min(100%,420px,calc((100svh - 120px)/2))!important}
       .detached-document .controls-legend{display:none}
+    }
+    @media (max-width:619px) and (any-pointer:coarse){
+      .detached-document #game{width:min(100%,420px,calc((100svh - 230px)/2))!important}
     }
   `;
   document.head.appendChild(style);
