@@ -59,14 +59,14 @@ Particles, tiny Web Audio noises, HiDPI rendering, and reduced-motion support gi
 | Ghost toggle | `G` |
 | Mute | `M` |
 
-On touch devices, use the on-screen controls. Left, right, and soft drop support press-and-hold; Pause stays available in the active mobile control dock. On desktop, **Move to window** transfers the same live game surface to a resizable window; closing it or choosing **Return to page** puts the game back without starting a second session. If the active game window is hidden, the match pauses instead of quietly carrying on without you.
+Rotation, Hard drop, and Hold trigger once per physical key press; horizontal movement and soft drop intentionally repeat while held. On touch devices, use the on-screen controls. Left, right, and soft drop support press-and-hold; Pause stays available in the active mobile control dock. On desktop, **Move to window** transfers the same live game surface to a resizable window; closing it or choosing **Return to page** puts the game back without starting a second session. If the active game window is hidden, the match pauses instead of quietly carrying on without you.
 
 ## Scoring & Levels
 
 - **Single:** 100 × level
 - **Double:** 300 × level
 - **Triple:** 500 × level
-- **Tetris:** 800 × level, with a 50% back-to-back bonus
+- **Tetris:** 800 × level, with a 50% back-to-back bonus when the previous line clear was also a Tetris; a no-clear placement preserves the chain, while a Single, Double, or Triple breaks it
 - **Soft drop:** +1 per cell
 - **Hard drop:** +2 per cell
 - **Combo:** +50 × level × combo streak

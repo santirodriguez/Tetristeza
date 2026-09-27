@@ -339,6 +339,10 @@
     }));
   }
 
+  function releaseHeldGameInput() {
+    document.dispatchEvent(new Event('tetristeza:release-input'));
+  }
+
   function attachPopupListeners(popup) {
     popup.document.getElementById('detached-return').addEventListener('click', () => returnToPage());
     popup.document.addEventListener('keydown', event => forwardKeyboard('keydown', event));
@@ -349,9 +353,7 @@
         if (detached && displayWindow === popup && !popup.closed && popup.document.hidden && isPlaying()) pauseButton.click();
       }, 150);
     });
-    popup.addEventListener('blur', () => {
-      ['ArrowLeft','ArrowRight','ArrowDown'].forEach(code => document.dispatchEvent(new KeyboardEvent('keyup', {code, bubbles:true})));
-    });
+    popup.addEventListener('blur', releaseHeldGameInput);
     popup.addEventListener('resize', () => window.dispatchEvent(new Event('resize')));
     popup.addEventListener('beforeunload', () => {
       if (!shuttingDown && detached) returnToPage({fromPopupClose:true});
@@ -367,6 +369,7 @@
     const popup = buildDisplayWindow();
     if (!popup) return;
 
+    releaseHeldGameInput();
     const parent = gameSection.parentNode;
     parent.replaceChild(placeholder, gameSection);
     placeholder.hidden = false;
@@ -392,6 +395,7 @@
 
   function returnToPage({fromPopupClose=false}={}) {
     if (!detached) return;
+    releaseHeldGameInput();
     const popup = displayWindow;
     const wasOverlayVisible = overlayVisible();
 
