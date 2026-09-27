@@ -256,6 +256,11 @@
     const popup = window.open('', 'tetristeza-game-window', 'popup=yes,width=780,height=900,resizable=yes,scrollbars=yes');
     if (!popup) {
       moveButton.title = c.blocked;
+      moveButton.querySelector('.display-popout-label').textContent = c.blocked;
+      moveButton.setAttribute('aria-label', c.blocked);
+      window.setTimeout(() => {
+        if (!detached) updateLocalCopy();
+      }, 1800);
       return null;
     }
     moveButton.removeAttribute('title');
