@@ -68,7 +68,7 @@
       body.game-active:not(.display-detached) main.wrap{padding-top:6px;padding-bottom:calc(112px + env(safe-area-inset-bottom))}
       body.game-active:not(.display-detached) #game-section{padding:6px}
       body.game-active:not(.display-detached) #game-section>.section-title{display:none}
-      body.game-active:not(.display-detached) #game{width:min(100%,420px,calc((100svh - 218px - env(safe-area-inset-bottom))/2))}
+      body.game-active:not(.display-detached) #game{width:min(100%,420px,calc((100svh - 230px - env(safe-area-inset-bottom))/2))}
       .display-popout{display:none}
     }
     @media (any-pointer:coarse) and (orientation:landscape) and (max-height:600px){
