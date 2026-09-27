@@ -46,10 +46,9 @@
     body.display-detached main.wrap{padding-top:18px!important;padding-bottom:18px!important}
     @media (any-pointer:coarse){.touch-wrap{display:block}.board-start-prompt{opacity:1}}
     @media (min-width:701px){
-      body.game-active:not(.display-detached) #game{width:min(100%,480px,calc((100svh - 44px)/2))}
+      body.game-active:not(.display-detached) #game{width:min(100%,480px,calc((100svh - 82px)/2))}
     }
     @media (min-width:701px) and (max-height:1100px){
-      body.game-active:not(.display-detached) .nav{display:none}
       body.game-active:not(.display-detached) main.wrap{padding-top:8px;padding-bottom:8px}
       body.game-active:not(.display-detached) #game-section{padding:10px 14px}
       body.game-active:not(.display-detached) #game-section>.section-title{display:none}
@@ -63,12 +62,11 @@
       .control-hint kbd{min-width:22px;font-size:11px}
     }
     @media (max-width:700px){
-      body.game-active:not(.display-detached) .nav{display:none}
       body.game-active:not(.display-detached) #game-section>.section-title{display:none}
       .display-popout{display:none}
     }
     @media (any-pointer:coarse) and (orientation:landscape) and (max-height:600px){
-      body.game-active:not(.display-detached) #game{width:min(100%,calc((100svh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))/2))}
+      body.game-active:not(.display-detached) #game{width:min(100%,calc((100svh - 62px - env(safe-area-inset-top) - env(safe-area-inset-bottom))/2))}
     }
     .detached-document{min-height:100%;margin:0;overflow:auto;background:var(--bg);color:var(--text)}
     .detached-header{position:sticky;top:0;z-index:900;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;border-bottom:1px solid var(--border);background:rgba(14,17,22,.94);backdrop-filter:blur(10px)}
