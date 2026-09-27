@@ -85,7 +85,7 @@ The game stays deliberately simple: plain HTML, CSS, and JavaScript. The global 
 
 The detachable window moves the real game surface instead of mirroring it, so there is still only one board and one game state. The game engine owns the active render/input host when that surface moves, rather than patching global animation APIs. Browser support follows modern standards across current Firefox, Chromium-based browsers, and Safari.
 
-The leaderboard database stays outside the public document root by default; `TETRISTEZA_DB_PATH` can point it somewhere else when needed.
+The leaderboard database stays outside the public document root by default; `TETRISTEZA_DB_PATH` can point it somewhere else when needed, but its resolved target must remain outside the public tree. Browser POSTs validate the supplied Origin/Referer against the server's own scheme, name, and effective port; non-browser clients may omit both headers. The small session rate limit is best-effort abuse protection, not authentication or anti-cheat.
 
 ## Author
 
