@@ -16,46 +16,13 @@
   if (!gameSection || !gameCanvas || !boardWrap || !sidePanel || !controlCard || !controlsLegend || !overlay || !startButton || !pauseButton || !game) return;
 
   const copy = {
-    en: {
-      moveWindow: 'Move to window', returnPage: 'Return to page', play: 'Play',
-      detached: 'The game is running in another window.', blocked: 'Pop-up blocked',
-      displayTitle: 'Tetristeza — Game', languageSwitcher: 'Language selector',
-      game: 'Game', legendMove: 'Move', legendRotate: 'Rotate', legendDrop: 'Drop', legendHold: 'Hold',
-      legendPause: 'Pause', legendRestart: 'Restart', legendGhost: 'Ghost', legendSound: 'Sound',
-      score: 'Score', lines: 'Lines', level: 'Level', mood: 'Mood', best: 'Best', next: 'Next', hold: 'Hold',
-      start: 'Start', pause: 'Pause', reset: 'Reset', holdButton: 'HOLD', help: 'Keyboard or on-screen controls.',
-      about: 'About the game', aboutCopy: 'A small falling-block game. It’s quite sensitive, and for once I mean that literally.',
-      board: 'Game board', nextPiece: 'Next piece', holdPiece: 'Hold piece', moveLeft: 'Move left', rotate: 'Rotate clockwise',
-      moveRight: 'Move right', softDrop: 'Soft drop', hardDrop: 'Hard drop'
-    },
-    'es-AR': {
-      moveWindow: 'Mover a otra ventana', returnPage: 'Volver a la página', play: 'Jugar',
-      detached: 'La partida está en otra ventana.', blocked: 'El navegador bloqueó la ventana',
-      displayTitle: 'Tetristeza — Juego', languageSwitcher: 'Selector de idioma',
-      game: 'Juego', legendMove: 'Mover', legendRotate: 'Rotar', legendDrop: 'Caída', legendHold: 'Guardar',
-      legendPause: 'Pausa', legendRestart: 'Reiniciar', legendGhost: 'Fantasma', legendSound: 'Sonido',
-      score: 'Puntaje', lines: 'Líneas', level: 'Nivel', mood: 'Ánimo', best: 'Récord', next: 'Siguientes', hold: 'Guardar',
-      start: 'Jugar', pause: 'Pausa', reset: 'Reiniciar', holdButton: 'GUARDAR', help: 'Teclado o controles en pantalla.',
-      about: 'De qué trata el juego', aboutCopy: 'Un jueguito de bloques que caen. Es bastante sensible y, por una vez, lo digo literalmente.',
-      board: 'Tablero de juego', nextPiece: 'Próxima pieza', holdPiece: 'Pieza guardada', moveLeft: 'Mover a la izquierda',
-      rotate: 'Rotar a la derecha', moveRight: 'Mover a la derecha', softDrop: 'Bajar', hardDrop: 'Caída rápida'
-    },
-    ca: {
-      moveWindow: 'Mou a una finestra', returnPage: 'Torna a la pàgina', play: 'Juga',
-      detached: 'La partida és en una altra finestra.', blocked: 'El navegador ha bloquejat la finestra',
-      displayTitle: 'Tetristeza — Joc', languageSwitcher: 'Selector d’idioma',
-      game: 'Joc', legendMove: 'Moure', legendRotate: 'Girar', legendDrop: 'Baixar', legendHold: 'Reserva',
-      legendPause: 'Pausa', legendRestart: 'Reiniciar', legendGhost: 'Fantasma', legendSound: 'So',
-      score: 'Puntuació', lines: 'Línies', level: 'Nivell', mood: 'Ànim', best: 'Rècord', next: 'Següents', hold: 'Reserva',
-      start: 'Juga', pause: 'Pausa', reset: 'Reinicia', holdButton: 'RESERVA', help: 'Teclat o controls en pantalla.',
-      about: 'De què va el joc', aboutCopy: 'Un joc petit de blocs que cauen. És força sensible i, per una vegada, ho dic literalment.',
-      board: 'Tauler de joc', nextPiece: 'Peça següent', holdPiece: 'Peça reservada', moveLeft: 'Mou a l’esquerra',
-      rotate: 'Gira a la dreta', moveRight: 'Mou a la dreta', softDrop: 'Baixa', hardDrop: 'Baixada ràpida'
-    }
+    en: {moveWindow:'Move to window',returnPage:'Return to page',play:'Play',detached:'The game is running in another window.',blocked:'Pop-up blocked',displayTitle:'Tetristeza — Game'},
+    'es-AR': {moveWindow:'Mover a otra ventana',returnPage:'Volver a la página',play:'Jugar',detached:'La partida está en otra ventana.',blocked:'El navegador bloqueó la ventana',displayTitle:'Tetristeza — Juego'},
+    ca: {moveWindow:'Mou a una finestra',returnPage:'Torna a la pàgina',play:'Juga',detached:'La partida és en una altra finestra.',blocked:'El navegador ha bloquejat la finestra',displayTitle:'Tetristeza — Joc'}
   };
 
   function language() {
-    const lang = document.documentElement.lang || 'en';
+    const lang = game.getLanguage();
     return copy[lang] ? lang : 'en';
   }
 
@@ -199,24 +166,8 @@
     if (detached && displayWindow && !displayWindow.closed) {
       displayWindow.document.documentElement.lang = language();
       displayWindow.document.title = c.displayTitle;
-    }
-
-    if (detached) {
-      gameSection.querySelectorAll('[data-i18n]').forEach(node => {
-        const value = c[node.dataset.i18n];
-        if (value) node.textContent = value;
-      });
-      const switcher = overlay.querySelector('.language-switcher');
-      if (switcher) switcher.setAttribute('aria-label', c.languageSwitcher);
-      overlay.querySelectorAll('.lang-btn').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.lang === language())));
-      gameCanvas.setAttribute('aria-label', c.board);
-      [1,2,3].forEach(index => gameSection.querySelector(`#next-${index}`)?.setAttribute('aria-label', `${c.nextPiece} ${index}`));
-      gameSection.querySelector('#hold')?.setAttribute('aria-label', c.holdPiece);
-      const actKeys = {left:'moveLeft',rotate:'rotate',right:'moveRight',down:'softDrop',drop:'hardDrop',hold:'holdPiece',pause:'pause'};
-      gameSection.querySelectorAll('[data-act]').forEach(button => {
-        const key = actKeys[button.dataset.act];
-        if (key && c[key]) button.setAttribute('aria-label', c[key]);
-      });
+      game.localizeRoot(gameSection);
+      game.localizeRoot(overlay);
     }
 
     updateLocalCopy();
