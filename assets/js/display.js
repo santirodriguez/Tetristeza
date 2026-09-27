@@ -331,6 +331,7 @@
 
   function forwardKeyboard(type, event) {
     if (!gameKeys.has(event.code) || isInteractiveKeyboardTarget(event.target)) return;
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
     event.preventDefault();
     document.dispatchEvent(new KeyboardEvent(type, {
       key: event.key, code: event.code, location: event.location, repeat: event.repeat,
@@ -428,7 +429,7 @@
   placeholder.querySelector('.game-return-button').addEventListener('click', () => returnToPage());
 
   document.addEventListener('keydown', event => {
-    if (event.code !== 'Escape' || event.repeat || !startButton.disabled) return;
+    if (event.code !== 'Escape' || event.repeat || event.ctrlKey || event.metaKey || event.altKey || !startButton.disabled) return;
     event.preventDefault();
     pauseButton.click();
   }, true);
