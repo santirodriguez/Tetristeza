@@ -45,11 +45,11 @@ Play it in a modern browser, or open `index.html` locally.
 ## 📸 Gameplay
 
 <p align="center">
-  <img src="assets/screenshots/screenshot-v1.4.png" alt="Tetristeza gameplay" width="900" />
+  <img src="assets/screenshots/screenshot-v1.5.png" alt="Tetristeza gameplay" width="900" />
 </p>
 
 <p align="center">
-  <sub>Current published screenshot: v1.4.0.</sub>
+  <sub>Tetristeza v1.5.0 gameplay.</sub>
 </p>
 
 ---
