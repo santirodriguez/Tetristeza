@@ -21,7 +21,11 @@
 </p>
 
 <p align="center">
-  <strong>English</strong> · <strong>Español (AR)</strong> · <strong>Català</strong>
+  <img src="assets/flags/us.svg" alt="" width="20" /> <strong>English</strong>
+  &nbsp;·&nbsp;
+  <img src="assets/flags/argentina.svg" alt="" width="20" /> <strong>Español</strong>
+  &nbsp;·&nbsp;
+  <img src="assets/flags/senyera.svg" alt="" width="20" /> <strong>Català</strong>
 </p>
 
 <p align="center">
@@ -61,7 +65,7 @@ Play it in a modern browser, or open `index.html` locally.
 | **🧱 Arcade core** | **👻 Hold, Ghost & Next** | **🏆 Global Top 10** |
 | 7-bag pieces, SRS-style rotation, combos, levels and back-to-back play. | Hold one piece, preview the next three and toggle Ghost whenever optimism becomes suspicious. | Qualifying scores can join a shared arcade ranking. |
 | **📱 Touch friendly** | **🪟 Move to window** | **🌐 Three languages** |
-| Responsive controls with both rotation directions and press-and-hold movement. | Move the live game into its own resizable window without losing state. | English, Argentine Spanish and Catalan. |
+| Responsive controls with both rotation directions and press-and-hold movement. | Move the live game into its own resizable window without losing state. | English, Español and Català. |
 
 Sound, Ghost, language and personal Best are remembered locally.
 
