@@ -11,8 +11,9 @@
   const startButton = document.getElementById('start');
   const pauseButton = document.getElementById('pause');
   const mainRegions = [...document.querySelectorAll('.nav, main, .footer')];
+  const game = window.TetristezaGame;
 
-  if (!gameSection || !gameCanvas || !boardWrap || !sidePanel || !controlCard || !controlsLegend || !overlay || !startButton || !pauseButton) return;
+  if (!gameSection || !gameCanvas || !boardWrap || !sidePanel || !controlCard || !controlsLegend || !overlay || !startButton || !pauseButton || !game) return;
 
   const copy = {
     en: {
@@ -168,56 +169,8 @@
   let detached = false;
   let shuttingDown = false;
 
-  const nativeRequestAnimationFrame = window.requestAnimationFrame.bind(window);
-  const nativeCancelAnimationFrame = window.cancelAnimationFrame.bind(window);
-  let renderHost = null;
-  let frameToken = 1;
-  const scheduledFrames = new Map();
-
-  window.requestAnimationFrame = callback => {
-    const host = renderHost && !renderHost.closed ? renderHost : window;
-    const request = host === window ? nativeRequestAnimationFrame : host.requestAnimationFrame.bind(host);
-    const cancel = host === window ? nativeCancelAnimationFrame : host.cancelAnimationFrame.bind(host);
-    const token = frameToken++;
-    let nativeId = 0;
-    try {
-      nativeId = request(() => {
-        scheduledFrames.delete(token);
-        callback(window.performance.now());
-      });
-      scheduledFrames.set(token, {cancel, nativeId});
-    } catch {
-      nativeId = nativeRequestAnimationFrame(() => {
-        scheduledFrames.delete(token);
-        callback(window.performance.now());
-      });
-      scheduledFrames.set(token, {cancel: nativeCancelAnimationFrame, nativeId});
-    }
-    return token;
-  };
-
-  window.cancelAnimationFrame = token => {
-    const scheduled = scheduledFrames.get(token);
-    if (!scheduled) {
-      try { nativeCancelAnimationFrame(token); } catch {}
-      return;
-    }
-    scheduledFrames.delete(token);
-    try { scheduled.cancel(scheduled.nativeId); } catch {}
-  };
-
   function overlayVisible() {
     return overlay.getAttribute('aria-hidden') === 'false';
-  }
-
-  function isPlaying() {
-    return Boolean(startButton.disabled) && !overlayVisible() && document.body.classList.contains('game-active');
-  }
-
-  function restartRenderCycleIfPlaying() {
-    if (!isPlaying() || pauseButton.disabled) return;
-    pauseButton.click();
-    pauseButton.click();
   }
 
   function releaseMainInert() {
@@ -225,20 +178,16 @@
   }
 
   function syncDetachedInert() {
-    if (!detached) return;
+    if (!detached || !displayWindow || displayWindow.closed) return;
+    const modalVisible = overlayVisible();
     releaseMainInert();
-    gameSection.inert = overlayVisible();
+    gameSection.inert = modalVisible;
+    const header = displayWindow.document.querySelector('.detached-header');
+    if (header) header.inert = modalVisible;
   }
 
   function suppressReadyOverlay() {
-    if (overlay.dataset.state !== 'ready') return;
-    if (overlay.style.display !== 'none') overlay.style.display = 'none';
-    if (overlay.getAttribute('aria-hidden') !== 'true') overlay.setAttribute('aria-hidden', 'true');
-    releaseMainInert();
-    gameSection.inert = false;
-    document.body.classList.remove('game-active');
-    const active = document.activeElement;
-    if (active instanceof HTMLElement && active.closest('#overlay')) active.blur();
+    game.dismissReadyOverlay();
   }
 
   function detachedTranslation() {
@@ -290,7 +239,7 @@
 
   function syncPopupGameState() {
     if (!detached || !displayWindow || displayWindow.closed) return;
-    displayWindow.document.body.classList.toggle('game-active', document.body.classList.contains('game-active'));
+    displayWindow.document.body.classList.toggle('game-active', game.getState().gameActive);
     syncDetachedInert();
   }
 
@@ -323,39 +272,8 @@
     return popup;
   }
 
-  const gameKeys = new Set(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp','Space','Escape','KeyC','KeyP','KeyR','KeyG','KeyM','KeyX','KeyZ']);
-
-  function isInteractiveKeyboardTarget(target) {
-    return Boolean(target && typeof target.closest === 'function' && target.closest('button,input,select,textarea,a,[contenteditable]:not([contenteditable="false"])'));
-  }
-
-  function forwardKeyboard(type, event) {
-    if (!gameKeys.has(event.code) || isInteractiveKeyboardTarget(event.target)) return;
-    if (event.ctrlKey || event.metaKey || event.altKey) return;
-    event.preventDefault();
-    document.dispatchEvent(new KeyboardEvent(type, {
-      key: event.key, code: event.code, location: event.location, repeat: event.repeat,
-      ctrlKey: event.ctrlKey, shiftKey: event.shiftKey, altKey: event.altKey, metaKey: event.metaKey,
-      bubbles: true, cancelable: true
-    }));
-  }
-
-  function releaseHeldGameInput() {
-    document.dispatchEvent(new Event('tetristeza:release-input'));
-  }
-
   function attachPopupListeners(popup) {
     popup.document.getElementById('detached-return').addEventListener('click', () => returnToPage());
-    popup.document.addEventListener('keydown', event => forwardKeyboard('keydown', event));
-    popup.document.addEventListener('keyup', event => forwardKeyboard('keyup', event));
-    popup.document.addEventListener('visibilitychange', () => {
-      if (!popup.document.hidden) return;
-      window.setTimeout(() => {
-        if (detached && displayWindow === popup && !popup.closed && popup.document.hidden && isPlaying()) pauseButton.click();
-      }, 150);
-    });
-    popup.addEventListener('blur', releaseHeldGameInput);
-    popup.addEventListener('resize', () => window.dispatchEvent(new Event('resize')));
     popup.addEventListener('beforeunload', () => {
       if (!shuttingDown && detached) returnToPage({fromPopupClose:true});
     });
@@ -370,7 +288,7 @@
     const popup = buildDisplayWindow();
     if (!popup) return;
 
-    releaseHeldGameInput();
+    game.releaseInput();
     const parent = gameSection.parentNode;
     parent.replaceChild(placeholder, gameSection);
     placeholder.hidden = false;
@@ -379,13 +297,11 @@
 
     displayWindow = popup;
     detached = true;
-    renderHost = popup;
     document.body.classList.add('display-detached');
+    attachPopupListeners(popup);
+    game.setHostWindow(popup);
     syncMovedLanguage();
     syncPopupGameState();
-    attachPopupListeners(popup);
-    restartRenderCycleIfPlaying();
-    window.dispatchEvent(new Event('resize'));
     try { popup.focus(); } catch {}
 
     clearInterval(displayMonitor);
@@ -396,11 +312,10 @@
 
   function returnToPage({fromPopupClose=false}={}) {
     if (!detached) return;
-    releaseHeldGameInput();
+    game.releaseInput();
     const popup = displayWindow;
     const wasOverlayVisible = overlayVisible();
 
-    renderHost = null;
     placeholder.replaceWith(gameSection);
     document.body.appendChild(overlay);
     placeholder.hidden = true;
@@ -411,8 +326,7 @@
     if (wasOverlayVisible && overlay.dataset.state !== 'ready') mainRegions.forEach(region => { region.inert = true; });
     else releaseMainInert();
 
-    restartRenderCycleIfPlaying();
-    window.dispatchEvent(new Event('resize'));
+    game.setHostWindow(window);
     clearInterval(displayMonitor);
     displayMonitor = 0;
     displayWindow = null;
@@ -428,34 +342,11 @@
   moveButton.addEventListener('click', detachToWindow);
   placeholder.querySelector('.game-return-button').addEventListener('click', () => returnToPage());
 
-  document.addEventListener('keydown', event => {
-    if (event.code !== 'Escape' || event.repeat || event.ctrlKey || event.metaKey || event.altKey || !startButton.disabled) return;
-    event.preventDefault();
-    pauseButton.click();
-  }, true);
-
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden && !detached && isPlaying()) pauseButton.click();
-  });
-
-  document.querySelectorAll('.lang-btn').forEach(button => button.addEventListener('click', () => setTimeout(syncMovedLanguage, 0)));
-
-  new MutationObserver(() => {
+  document.addEventListener('tetristeza:statechange', () => {
     suppressReadyOverlay();
     syncPopupGameState();
-  }).observe(overlay, {attributes:true, attributeFilter:['aria-hidden','style','data-state']});
-
-  new MutationObserver(() => syncPopupGameState()).observe(document.body, {attributes:true, attributeFilter:['class']});
-  new MutationObserver(() => syncMovedLanguage()).observe(document.documentElement, {attributes:true, attributeFilter:['lang']});
-  new MutationObserver(records => {
-    if (!detached || !displayWindow || displayWindow.closed) return;
-    records.forEach(record => record.addedNodes.forEach(node => {
-      if (!(node instanceof HTMLStyleElement)) return;
-      const cloned = displayWindow.document.createElement('style');
-      cloned.textContent = node.textContent;
-      displayWindow.document.head.appendChild(cloned);
-    }));
-  }).observe(document.head, {childList:true});
+  });
+  document.addEventListener('tetristeza:languagechange', syncMovedLanguage);
 
   window.addEventListener('beforeunload', () => {
     shuttingDown = true;

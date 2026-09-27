@@ -83,7 +83,7 @@ It is intentionally an arcade leaderboard, not an esports anti-cheat department.
 
 The game stays deliberately simple: plain HTML, CSS, and JavaScript. The global Top 10 is a small self-hosted PHP + SQLite service; opening `index.html` directly from disk falls back to an isolated local leaderboard.
 
-The detachable window moves the real game surface instead of mirroring it, so there is still only one board and one game state. Browser support follows modern standards across current Firefox, Chromium-based browsers, and Safari.
+The detachable window moves the real game surface instead of mirroring it, so there is still only one board and one game state. The game engine owns the active render/input host when that surface moves, rather than patching global animation APIs. Browser support follows modern standards across current Firefox, Chromium-based browsers, and Safari.
 
 The leaderboard database stays outside the public document root by default; `TETRISTEZA_DB_PATH` can point it somewhere else when needed.
 

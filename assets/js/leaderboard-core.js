@@ -477,7 +477,7 @@
     }
   }
 
-  new MutationObserver(sync).observe(document.documentElement, {attributes: true, attributeFilter: ['lang']});
-  new MutationObserver(sync).observe(overlay, {attributes: true, attributeFilter: ['aria-hidden', 'style', 'data-state']});
+  document.addEventListener('tetristeza:languagechange', sync);
+  document.addEventListener('tetristeza:statechange', sync);
   sync();
 })();
