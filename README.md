@@ -75,7 +75,7 @@ Rotation, Hard drop, and Hold trigger once per physical key press; horizontal mo
 
 ## Global Top 10
 
-At Game Over, a qualifying score can join the global Top 10 with a name of up to **8 characters** and an optional private email. Only the best ten survive; everyone else is politely forgotten by SQLite. Earlier scores win ties.
+At Game Over, a qualifying score can join the global Top 10 with a name of up to **8 Unicode code points** and an optional private email. Only the best ten survive; everyone else is politely forgotten by SQLite. Earlier scores win ties. If a save loses its network response, the client retries the same protected submission only within the server's 15-minute receipt window; the email remains session-only client state and is never shown publicly.
 
 It is intentionally an arcade leaderboard, not an esports anti-cheat department.
 
