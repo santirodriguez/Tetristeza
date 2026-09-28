@@ -7,9 +7,9 @@ const path = require('node:path');
 const source = fs.readFileSync(path.join(__dirname, '../assets/js/audio.js'), 'utf8');
 const flush = () => new Promise(resolve => setImmediate(resolve));
 
-function fixture({ unavailable = false, throws = false, resume = 'ok' } = {}) {
+function fixture({ unavailable = false, throws = false, resume = 'ok', offline = false } = {}) {
   let time = 0, nextTimer = 0;
-  const timers = new Map(), contexts = [], events = new Map();
+  const timers = new Map(), contexts = [], renders = [], events = new Map();
   const host = () => ({
     setTimeout(fn, delay) { const id = ++nextTimer; timers.set(id, { fn, at: time + delay }); return id; },
     clearTimeout(id) { timers.delete(id); }
@@ -26,7 +26,7 @@ function fixture({ unavailable = false, throws = false, resume = 'ok' } = {}) {
     constructor() {
       if (throws) throw Error('unavailable hardware');
       this.state = 'suspended'; this.destination = {}; this.oscillators = []; this.gains = [];
-      this.requests = []; this.resumes = 0; contexts.push(this);
+      this.sources = []; this.requests = []; this.resumes = 0; contexts.push(this);
     }
     get currentTime() { return time / 1000; }
     stateTo(state) { this.state = state; this.onstatechange?.(); }
@@ -38,6 +38,10 @@ function fixture({ unavailable = false, throws = false, resume = 'ok' } = {}) {
     }
     suspend() { this.stateTo('suspended'); return Promise.resolve(); }
     close() { this.stateTo('closed'); return Promise.resolve(); }
+    createBufferSource() {
+      const node = { connect() {}, disconnect() { this.disconnected = true; }, start(at, offset) { this.offset = offset; }, stop(at = time / 1000) { this.stopAt = at; } };
+      this.sources.push(node); return node;
+    }
     createGain() {
       const node = { gain: new Param(), connect() {}, disconnect() { this.disconnected = true; } };
       this.gains.push(node); return node;
@@ -50,19 +54,27 @@ function fixture({ unavailable = false, throws = false, resume = 'ok' } = {}) {
       this.oscillators.push(node); return node;
     }
   }
-  const window = { ...host(), AudioContext: unavailable ? undefined : Context, addEventListener: (name, fn) => events.set(name, fn) };
+  class Offline {
+    constructor(channels, length, rate) { this.destination = {}; this.oscillators = []; this.gains = []; this.sources = []; this.buffer = { duration: length / rate, length, sampleRate: rate, numberOfChannels: channels }; renders.push(this); }
+    createBuffer(channels, length) { return { getChannelData: () => new Float32Array(length) }; }
+    createGain() { return Context.prototype.createGain.call(this); }
+    createOscillator() { return Context.prototype.createOscillator.call(this); }
+    createBufferSource() { return Context.prototype.createBufferSource.call(this); }
+    startRendering() { return new Promise((resolve, reject) => { this.finish = () => resolve(this.buffer); this.fail = () => reject(Error('render failed')); }); }
+  }
+  const window = { ...host(), OfflineAudioContext: offline ? Offline : undefined, AudioContext: unavailable ? undefined : Context, addEventListener: (name, fn) => events.set(name, fn) };
   vm.runInNewContext(source, { window });
   const service = window.TetristezaAudio;
   let state = { enabled: true, active: true, visible: true, host: window };
   function set(patch = {}) { Object.assign(state, patch); service.setState(state); }
   function advance(ms) {
     time += ms;
-    for (const c of contexts) for (const voice of c.oscillators) {
+    for (const c of contexts) for (const voice of [...c.oscillators, ...c.sources]) {
       if (!voice.ended && voice.stopAt <= c.currentTime) { voice.ended = true; voice.onended?.(); }
     }
     for (const [id, timer] of timers) if (timer.at <= time) { timers.delete(id); timer.fn(); }
   }
-  return { service, contexts, timers, events, set, advance, host, window };
+  return { service, contexts, renders, timers, events, set, advance, host, window };
 }
 
 test('load, Ready and persisted mute never construct a context', () => {
@@ -189,4 +201,76 @@ test('partial node creation failure releases the oscillator and keeps the servic
   c.createGain = () => { throw Error('allocation failed'); };
   f.service.play('rotate'); assert.equal(c.oscillators[0].disconnected, true);
   c.createGain = createGain; f.service.play('rotate'); assert.equal(c.oscillators.length, 2);
+});
+
+
+async function startRender(f) {
+  f.set({ musicEnabled: true }); f.service.activate(); await flush();
+  for (let i = 0; i < 3; i++) { f.advance(1); await flush(); }
+  assert.equal(f.renders.length, 1);
+  assert.equal(typeof f.renders[0].finish, 'function');
+}
+
+test('music is opt-in and rendered once; pending work deduplicates across toggles', async () => {
+  const f = fixture({ offline: true }); f.set(); f.service.activate(); await flush();
+  assert.equal(f.renders.length, 0);
+  await startRender(f);
+  f.set({ musicEnabled: false }); f.set({ musicEnabled: true }); f.service.activate();
+  assert.equal(f.renders.length, 1);
+  f.renders[0].finish(); await flush();
+  assert.equal(f.contexts[0].sources.length, 1);
+  assert.ok(f.renders[0].buffer.length * 4 <= 4 * 1024 * 1024);
+  f.set({ musicEnabled: false }); f.set({ musicEnabled: true }); f.service.activate();
+  assert.equal(f.contexts[0].sources.length, 1, 'retiring source must end before replacement');
+  f.advance(20); assert.equal(f.contexts[0].sources.length, 2);
+  assert.equal(f.contexts[0].sources.filter(s => !s.disconnected).length, 1);
+  assert.equal(f.renders.length, 1);
+});
+
+test('late rendering only caches after off, mute, pause, hidden, game end or disposal', async () => {
+  for (const patch of [{ musicEnabled: false }, { enabled: false }, { active: false }, { visible: false }, 'dispose']) {
+    const f = fixture({ offline: true }); await startRender(f);
+    if (patch === 'dispose') f.service.dispose(); else f.set(patch);
+    f.renders[0].finish(); await flush();
+    assert.equal(f.contexts[0].sources.length, 0);
+  }
+});
+
+test('pause remembers offset, restart resets it, and host transfer does not recreate music', async () => {
+  const f = fixture({ offline: true }); await startRender(f); f.renders[0].finish(); await flush();
+  const c = f.contexts[0]; f.advance(1500);
+  f.set({ host: f.host() }); assert.equal(c.sources.length, 1);
+  f.set({ active: false }); f.advance(30); await flush();
+  f.set({ active: true }); f.service.activate(); await flush();
+  assert.equal(c.sources[1].offset, 1.5);
+  f.service.restart(); f.service.activate(); f.advance(20); await flush();
+  assert.equal(c.sources[2].offset, 0);
+  assert.equal(f.renders.length, 1);
+});
+
+test('render failure is reported without a retry loop and a new opt-in may retry', async () => {
+  const f = fixture({ offline: true }); await startRender(f); f.renders[0].fail(); await flush();
+  assert.equal(f.service.getMusicState().status, 'unavailable');
+  f.service.activate(); await flush(); assert.equal(f.renders.length, 1);
+  f.set({ musicEnabled: false }); f.set({ musicEnabled: true }); f.service.activate(); await flush();
+  assert.equal(f.renders.length, 2);
+});
+
+test('missing offline support leaves SFX usable', async () => {
+  const f = fixture(); f.set({ musicEnabled: true }); f.service.activate(); await flush();
+  assert.equal(f.service.getMusicState().status, 'unavailable');
+  f.service.play('rotate'); assert.equal(f.contexts[0].oscillators.length, 1);
+});
+
+test('restart during rendering uses the latest session and closed-context recovery reuses the buffer', async () => {
+  const f = fixture({ offline: true }); await startRender(f);
+  f.service.restart(); f.service.activate(); f.renders[0].finish(); await flush();
+  assert.equal(f.contexts[0].sources[0].offset, 0);
+  f.contexts[0].stateTo('closed'); f.service.activate(); await flush();
+  assert.equal(f.contexts.length, 2); assert.equal(f.renders.length, 1);
+  assert.equal(f.contexts[0].sources[0].disconnected, true);
+  assert.equal(f.contexts[1].sources.length, 1);
+  f.set({ active: false }); f.service.play('gameOver'); f.advance(350);
+  assert.equal(f.contexts[1].sources[0].disconnected, true);
+  assert.equal(f.contexts[1].state, 'suspended');
 });

@@ -86,6 +86,13 @@
     .hold-preview canvas{max-width:88px}
     .preview-label{font-size:12px;margin:6px 0 0;color:var(--muted)}
     .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .actions #music,.music-status{grid-column:1/-1}
+    .music-status{font-size:12px;line-height:1.35;color:var(--muted);margin:0;overflow-wrap:anywhere}
+    .music-status:empty{display:none}
+    .pause-audio{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+    .pause-audio[hidden]{display:none}
+    .pause-audio .control{min-height:44px}
+    #music[aria-pressed="true"],#pause-music[aria-pressed="true"]{border-color:var(--accent,#22d3ee);background:rgba(34,211,238,.14)}
     .buttons{display:flex;flex-wrap:wrap;gap:8px}
     .buttons.center{justify-content:center}
     button.control{appearance:none;border:1px solid #34415a;background:linear-gradient(180deg,#151d2d,#101725);color:var(--text);padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:650;letter-spacing:.01em;transition:transform .12s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease;user-select:none;touch-action:manipulation;min-width:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
@@ -237,6 +244,10 @@
       .touch{grid-template-columns:repeat(5,minmax(0,1fr))}
       body.game-active .touch .control{font-size:11px}
     }
+    @media (max-width:700px), (any-pointer:coarse) and (orientation:landscape) and (max-height:600px){
+      body.game-active .actions #music{display:none}
+      body.game-active .actions .music-status{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+    }
     @media (max-height:520px){
       .overlay{place-items:start center;padding:8px}
       .overlay .modal{margin:auto 0;max-height:calc(100svh - 16px)}
@@ -303,6 +314,8 @@
               <button id="pause" class="control" type="button"><span aria-hidden="true">⏸</span> <span data-i18n="pause">Pause</span></button>
               <button id="reset" class="control" type="button"><span aria-hidden="true">↻</span> <span data-i18n="reset">Reset</span></button>
               <button id="mute" class="control" type="button"><span id="mute-icon" aria-hidden="true">🔈</span> <span id="mute-label">Mute</span></button>
+              <button id="music" class="control" type="button" aria-pressed="false"><span aria-hidden="true">♫</span> <span data-audio-music>Music</span></button>
+              <p class="music-status" data-music-status role="status" aria-live="polite"></p>
             </div>
           </div>
         </div></div>
@@ -340,17 +353,22 @@
         <button class="lang-btn" type="button" data-lang="es-AR" aria-label="Español (Argentina)" aria-pressed="false"><span class="flag-icon flag-ar" aria-hidden="true"></span></button>
         <button class="lang-btn" type="button" data-lang="ca" aria-label="Català" aria-pressed="false"><span class="flag-icon senyera" aria-hidden="true"></span></button>
       </div>
+      <div id="pause-audio" class="pause-audio" role="group" hidden>
+        <button id="pause-mute" class="control" type="button"></button>
+        <button id="pause-music" class="control" type="button" aria-pressed="false"><span aria-hidden="true">♫</span> <span data-audio-music>Music</span></button>
+        <p class="music-status" data-music-status role="status" aria-live="polite"></p>
+      </div>
       <div class="buttons center"><button id="overlay-primary" class="control btn-accent" type="button">Start</button><button id="overlay-secondary" class="control" type="button">Reset</button></div>
     </div>
   </div>
 
   <script>
   (()=>{"use strict";
-    const STORAGE={best:'tetristeza:best',language:'tetristeza:language',sound:'tetristeza:sound',ghost:'tetristeza:ghost'};
+    const STORAGE={best:'tetristeza:best',language:'tetristeza:language',sound:'tetristeza:sound',ghost:'tetristeza:ghost',music:'tetristeza:music'};
     const translations={
-      en:{languageSwitcher:'Language selector',controlsLabel:'Game controls',game:'Game',legendMove:'Move',legendRotate:'Rotate',legendDrop:'Drop',legendHold:'Hold',legendPause:'Pause',legendRestart:'Restart',legendGhost:'Ghost',legendSound:'Sound',score:'Score',lines:'Lines',level:'Level',mood:'Mood',best:'Best',next:'Next',hold:'Hold',start:'Start',pause:'Pause',reset:'Reset',mute:'Mute',unmute:'Unmute',holdButton:'HOLD',help:'Keyboard or on-screen controls.',about:'About the game',aboutCopy:'A small falling-block game. It’s quite sensitive, and for once I mean that literally.',ready:'Ready',readyMsg:'Whenever you’re ready.',resume:'Resume',paused:'Paused',pausedMsg:'No rush. The blocks can wait.',gameOver:'Game Over',playAgain:'Play again',scoreFinal:'Score: {score}',glow:'Glow',gloom:'Gloom',board:'Game board',nextPiece:'Next piece',holdPiece:'Hold piece',moveLeft:'Move left',rotate:'Rotate clockwise',rotateCCW:'Rotate counter-clockwise',moveRight:'Move right',softDrop:'Soft drop',hardDrop:'Hard drop'},
-      'es-AR':{languageSwitcher:'Selector de idioma',controlsLabel:'Controles del juego',game:'Juego',legendMove:'Mover',legendRotate:'Rotar',legendDrop:'Caída',legendHold:'Guardar',legendPause:'Pausa',legendRestart:'Reiniciar',legendGhost:'Fantasma',legendSound:'Sonido',score:'Puntaje',lines:'Líneas',level:'Nivel',mood:'Ánimo',best:'Récord',next:'Siguientes',hold:'Guardar',start:'Jugar',pause:'Pausa',reset:'Reiniciar',mute:'Silenciar',unmute:'Activar sonido',holdButton:'GUARDAR',help:'Teclado o controles en pantalla.',about:'De qué trata el juego',aboutCopy:'Un jueguito de bloques que caen. Es bastante sensible y, por una vez, lo digo literalmente.',ready:'Todo listo',readyMsg:'Cuando quieras, arrancá.',resume:'Seguir',paused:'En pausa',pausedMsg:'Tranqui. Los bloques pueden esperar.',gameOver:'Partida finalizada',playAgain:'Volver a jugar',scoreFinal:'Puntaje: {score}',glow:'Brillo',gloom:'Tristeza',board:'Tablero de juego',nextPiece:'Próxima pieza',holdPiece:'Pieza guardada',moveLeft:'Mover a la izquierda',rotate:'Rotar a la derecha',rotateCCW:'Rotar a la izquierda',moveRight:'Mover a la derecha',softDrop:'Bajar',hardDrop:'Caída rápida'},
-      ca:{languageSwitcher:'Selector d’idioma',controlsLabel:'Controls del joc',game:'Joc',legendMove:'Moure',legendRotate:'Girar',legendDrop:'Baixar',legendHold:'Reserva',legendPause:'Pausa',legendRestart:'Reiniciar',legendGhost:'Fantasma',legendSound:'So',score:'Puntuació',lines:'Línies',level:'Nivell',mood:'Ànim',best:'Rècord',next:'Següents',hold:'Reserva',start:'Juga',pause:'Pausa',reset:'Reinicia',mute:'Silencia',unmute:'Activa el so',holdButton:'RESERVA',help:'Teclat o controls en pantalla.',about:'De què va el joc',aboutCopy:'Un joc petit de blocs que cauen. És força sensible i, per una vegada, ho dic literalment.',ready:'Tot a punt',readyMsg:'Quan vulguis, comença.',resume:'Continua',paused:'En pausa',pausedMsg:'Cap pressa. Els blocs poden esperar.',gameOver:'Partida acabada',playAgain:'Torna a jugar',scoreFinal:'Puntuació: {score}',glow:'Brillantor',gloom:'Tristesa',board:'Tauler de joc',nextPiece:'Peça següent',holdPiece:'Peça reservada',moveLeft:'Mou a l’esquerra',rotate:'Gira a la dreta',rotateCCW:'Gira a l’esquerra',moveRight:'Mou a la dreta',softDrop:'Baixa',hardDrop:'Baixada ràpida'}
+      en:{music:'Music',musicOn:'Music on',musicOff:'Music off',musicPending:'Preparing music…',musicUnavailable:'Music is unavailable. Try enabling it again.',musicMuted:'Unmute to hear music.',musicWaiting:'Music starts when you play.',audioSettings:'Audio settings',languageSwitcher:'Language selector',controlsLabel:'Game controls',game:'Game',legendMove:'Move',legendRotate:'Rotate',legendDrop:'Drop',legendHold:'Hold',legendPause:'Pause',legendRestart:'Restart',legendGhost:'Ghost',legendSound:'Sound',score:'Score',lines:'Lines',level:'Level',mood:'Mood',best:'Best',next:'Next',hold:'Hold',start:'Start',pause:'Pause',reset:'Reset',mute:'Mute',unmute:'Unmute',holdButton:'HOLD',help:'Keyboard or on-screen controls.',about:'About the game',aboutCopy:'A small falling-block game. It’s quite sensitive, and for once I mean that literally.',ready:'Ready',readyMsg:'Whenever you’re ready.',resume:'Resume',paused:'Paused',pausedMsg:'No rush. The blocks can wait.',gameOver:'Game Over',playAgain:'Play again',scoreFinal:'Score: {score}',glow:'Glow',gloom:'Gloom',board:'Game board',nextPiece:'Next piece',holdPiece:'Hold piece',moveLeft:'Move left',rotate:'Rotate clockwise',rotateCCW:'Rotate counter-clockwise',moveRight:'Move right',softDrop:'Soft drop',hardDrop:'Hard drop'},
+      'es-AR':{music:'Música',musicOn:'Música activada',musicOff:'Música desactivada',musicPending:'Preparando música…',musicUnavailable:'La música no está disponible. Probá activarla de nuevo.',musicMuted:'Activá el sonido para escuchar música.',musicWaiting:'La música empieza cuando jugás.',audioSettings:'Ajustes de sonido',languageSwitcher:'Selector de idioma',controlsLabel:'Controles del juego',game:'Juego',legendMove:'Mover',legendRotate:'Rotar',legendDrop:'Caída',legendHold:'Guardar',legendPause:'Pausa',legendRestart:'Reiniciar',legendGhost:'Fantasma',legendSound:'Sonido',score:'Puntaje',lines:'Líneas',level:'Nivel',mood:'Ánimo',best:'Récord',next:'Siguientes',hold:'Guardar',start:'Jugar',pause:'Pausa',reset:'Reiniciar',mute:'Silenciar',unmute:'Activar sonido',holdButton:'GUARDAR',help:'Teclado o controles en pantalla.',about:'De qué trata el juego',aboutCopy:'Un jueguito de bloques que caen. Es bastante sensible y, por una vez, lo digo literalmente.',ready:'Todo listo',readyMsg:'Cuando quieras, arrancá.',resume:'Seguir',paused:'En pausa',pausedMsg:'Tranqui. Los bloques pueden esperar.',gameOver:'Partida finalizada',playAgain:'Volver a jugar',scoreFinal:'Puntaje: {score}',glow:'Brillo',gloom:'Tristeza',board:'Tablero de juego',nextPiece:'Próxima pieza',holdPiece:'Pieza guardada',moveLeft:'Mover a la izquierda',rotate:'Rotar a la derecha',rotateCCW:'Rotar a la izquierda',moveRight:'Mover a la derecha',softDrop:'Bajar',hardDrop:'Caída rápida'},
+      ca:{music:'Música',musicOn:'Música activada',musicOff:'Música desactivada',musicPending:'Preparant la música…',musicUnavailable:'La música no està disponible. Prova d’activar-la de nou.',musicMuted:'Activa el so per escoltar música.',musicWaiting:'La música comença quan jugues.',audioSettings:'Opcions de so',languageSwitcher:'Selector d’idioma',controlsLabel:'Controls del joc',game:'Joc',legendMove:'Moure',legendRotate:'Girar',legendDrop:'Baixar',legendHold:'Reserva',legendPause:'Pausa',legendRestart:'Reiniciar',legendGhost:'Fantasma',legendSound:'So',score:'Puntuació',lines:'Línies',level:'Nivell',mood:'Ànim',best:'Rècord',next:'Següents',hold:'Reserva',start:'Juga',pause:'Pausa',reset:'Reinicia',mute:'Silencia',unmute:'Activa el so',holdButton:'RESERVA',help:'Teclat o controls en pantalla.',about:'De què va el joc',aboutCopy:'Un joc petit de blocs que cauen. És força sensible i, per una vegada, ho dic literalment.',ready:'Tot a punt',readyMsg:'Quan vulguis, comença.',resume:'Continua',paused:'En pausa',pausedMsg:'Cap pressa. Els blocs poden esperar.',gameOver:'Partida acabada',playAgain:'Torna a jugar',scoreFinal:'Puntuació: {score}',glow:'Brillantor',gloom:'Tristesa',board:'Tauler de joc',nextPiece:'Peça següent',holdPiece:'Peça reservada',moveLeft:'Mou a l’esquerra',rotate:'Gira a la dreta',rotateCCW:'Gira a l’esquerra',moveRight:'Mou a la dreta',softDrop:'Baixa',hardDrop:'Baixada ràpida'}
     };
     function storageGet(key,fallback){try{return localStorage.getItem(key)??fallback}catch{return fallback}}
     function storageSet(key,value){try{localStorage.setItem(key,value)}catch{}}
@@ -422,9 +440,9 @@
     function updateParticles(dt){for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx*dt*.002;p.y+=p.vy*dt*.002;if(p.kind==='drop')p.vy+=.00035*dt;p.life-=.0022*dt;if(p.life<=0)particles.splice(i,1)}}
     function drawParticles(){const{cellW,cellH}=getCell();ctx.save();for(const p of particles){const s=Math.max(1,Math.min(cellW,cellH)*.25);ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.fillRect(p.x*cellW-s/2,p.y*cellH-s/2,s,s)}ctx.restore()}
 
-    const audio={enabled:storageBoolean(STORAGE.sound,true)};
+    const audio={enabled:storageBoolean(STORAGE.sound,true),musicEnabled:storageBoolean(STORAGE.music,false)};
     function audioCall(method,...args){try{return window.TetristezaAudio?.[method]?.(...args)}catch{}}
-    function syncAudio(){audioCall('setState',{enabled:audio.enabled,active:running&&!paused&&overlayKind==='playing',visible:!hostDocument.hidden,host:hostWindow})}
+    function syncAudio(){audioCall('setState',{enabled:audio.enabled,musicEnabled:audio.musicEnabled,active:running&&!paused&&overlayKind==='playing',visible:!hostDocument.hidden,host:hostWindow})}
     function activateAudio(){syncAudio();audioCall('activate')}
     function playAudio(cue,details){audioCall('play',cue,details)}
 
@@ -486,10 +504,21 @@
     function updateGhostButton(){for(const btn of actionButtons)if(btn.dataset.act==='ghost')btn.setAttribute('aria-pressed',String(showGhost))}
     function updateActionButtons(){startBtn.disabled=running;pauseBtn.disabled=!running;const label=t(paused?'resume':'pause');const span=pauseBtn.querySelector('[data-i18n="pause"]');if(span)span.textContent=label;pauseBtn.setAttribute('aria-label',label);for(const btn of actionButtons)if(btn.dataset.act==='pause')btn.setAttribute('aria-label',label)}
     function isInteractiveTarget(target){return Boolean(target&&typeof target.closest==='function'&&target.closest('button,input,select,textarea,a,[contenteditable="true"]'))}
-    function notifyState(){syncAudio();document.dispatchEvent(new Event('tetristeza:statechange'))}
+    function notifyState(){syncAudio();updateAudioControls();document.dispatchEvent(new Event('tetristeza:statechange'))}
     function notifyLanguage(){document.dispatchEvent(new Event('tetristeza:languagechange'))}
-    function getGameState(){return{running,paused,overlayKind,overlayVisible:overlayVisible(),gameActive:running&&!paused&&overlayKind==='playing',showGhost,audioEnabled:audio.enabled}}
+    function getGameState(){return{running,paused,overlayKind,overlayVisible:overlayVisible(),gameActive:running&&!paused&&overlayKind==='playing',showGhost,audioEnabled:audio.enabled,musicEnabled:audio.musicEnabled}}
     function updateMuteButton(){muteIcon.textContent=audio.enabled?'🔈':'🔇';muteLabel.textContent=t(audio.enabled?'mute':'unmute');muteBtn.setAttribute('aria-label',t(audio.enabled?'mute':'unmute'));muteBtn.setAttribute('aria-pressed',String(!audio.enabled))}
+    const musicButtons=[document.getElementById('music'),document.getElementById('pause-music')],pauseMute=document.getElementById('pause-mute'),pauseAudio=document.getElementById('pause-audio'),musicMessages=[...document.querySelectorAll('[data-music-status]')];
+    function updateAudioControls(){
+      const state=audioCall('getMusicState')||{status:'off'};
+      if(state.status==='unavailable'&&audio.musicEnabled){audio.musicEnabled=false;storageSet(STORAGE.music,'false');syncAudio()}
+      for(const button of musicButtons){button.setAttribute('aria-pressed',String(audio.musicEnabled));button.setAttribute('aria-label',t(audio.musicEnabled?'musicOn':'musicOff'));button.querySelector('[data-audio-music]').textContent=t('music');button.setAttribute('aria-busy',String(audio.musicEnabled&&state.status==='pending'))}
+      pauseMute.textContent=t(audio.enabled?'mute':'unmute');pauseMute.setAttribute('aria-pressed',String(!audio.enabled));
+      pauseAudio.hidden=overlayKind!=='paused';pauseAudio.setAttribute('aria-label',t('audioSettings'));
+      const key=state.status==='unavailable'?'musicUnavailable':!audio.musicEnabled?'':state.status==='pending'?'musicPending':!audio.enabled?'musicMuted':(!running||paused)?'musicWaiting':'';
+      for(const message of musicMessages){const copy=key?t(key):'';if(message.textContent!==copy)message.textContent=copy}
+    }
+    function toggleMusic(){if(!window.TetristezaAudio){for(const message of musicMessages)message.textContent=t('musicUnavailable');return}audio.musicEnabled=!audio.musicEnabled;storageSet(STORAGE.music,String(audio.musicEnabled));syncAudio();if(audio.musicEnabled)activateAudio();updateAudioControls();notifyState()}
     function toggleGhost(){showGhost=!showGhost;storageSet(STORAGE.ghost,String(showGhost));updateGhostButton();drawBoard();notifyState()}
     function toggleSound(){audio.enabled=!audio.enabled;storageSet(STORAGE.sound,String(audio.enabled));if(audio.enabled)activateAudio();updateMuteButton();notifyState()}
     function showOverlay(title,msg,primary=t('resume'),secondary=t('reset'),emoji=null){document.body.classList.remove('game-active');overlay.dataset.state=overlayKind;oTitle.textContent=title;oMsg.textContent=msg;oPrimary.textContent=primary;oSecondary.textContent=secondary;if(emoji&&!reducedMotion){oEmoji.textContent=emoji;oEmoji.style.display='block';oEmoji.setAttribute('aria-hidden','false')}else{oEmoji.style.display='none';oEmoji.setAttribute('aria-hidden','true')}setBackgroundInert(true);overlay.style.display='grid';overlay.setAttribute('aria-hidden','false');modal.focus({preventScroll:true});notifyState()}
@@ -497,15 +526,15 @@
     function setPaused(nextPaused){if(!running||paused===nextPaused)return false;paused=nextPaused;clearKeys();updateActionButtons();if(paused){cancelGameFrame(rafId);rafId=0;overlayKind='paused';showOverlay(t('paused'),t('pausedMsg'),t('resume'),t('reset'),'🙂')}else{overlayKind='playing';hideOverlay();activateAudio();lastTime=performance.now();update(lastTime)}return true}
     function togglePause(){setPaused(!paused)}
     function showReady(){overlayKind='ready';updateActionButtons();showOverlay(t('ready'),t('readyMsg'),t('start'),t('reset'),'🙂')}
-    function restartGame(){audioCall('stop');running=true;cancelGameFrame(rafId);rafId=0;reset();spawn();updateActionButtons();overlayKind='playing';hideOverlay();activateAudio();lastTime=performance.now();update(lastTime)}
+    function restartGame(){audioCall('restart');running=true;cancelGameFrame(rafId);rafId=0;reset();spawn();updateActionButtons();overlayKind='playing';hideOverlay();activateAudio();lastTime=performance.now();update(lastTime)}
     function dismissReadyOverlay(){if(overlayKind!=='ready'||!overlayVisible())return false;overlay.style.display='none';overlay.setAttribute('aria-hidden','true');setBackgroundInert(false);document.body.classList.remove('game-active');const active=overlay.ownerDocument?.activeElement;if(active&&typeof active.closest==='function'&&active.closest('#overlay'))active.blur?.();notifyState();return true}
-    function localizeRoot(root=document){root.querySelectorAll?.('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n)});root.querySelectorAll?.('[data-i18n-html]').forEach(el=>{el.innerHTML=t(el.dataset.i18nHtml)});root.querySelectorAll?.('.lang-btn').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.lang===language)));root.querySelectorAll?.('.language-switcher').forEach(el=>el.setAttribute('aria-label',t('languageSwitcher')));root.querySelectorAll?.('.controls-legend').forEach(el=>el.setAttribute('aria-label',t('controlsLabel')));const acts={left:'moveLeft',rotate:'rotate',rotateCCW:'rotateCCW',right:'moveRight',down:'softDrop',drop:'hardDrop',hold:'holdPiece',ghost:'legendGhost',pause:paused?'resume':'pause'};root.querySelectorAll?.('[data-act]').forEach(btn=>{const key=acts[btn.dataset.act];if(key)btn.setAttribute('aria-label',t(key))});root.querySelector?.('#game')?.setAttribute('aria-label',t('board'));[1,2,3].forEach((n,i)=>root.querySelector?.(`#next-${n}`)?.setAttribute('aria-label',`${t('nextPiece')} ${i+1}`));root.querySelector?.('#hold')?.setAttribute('aria-label',t('holdPiece'));updateGhostButton();updateMuteButton();updateActionButtons()}
+    function localizeRoot(root=document){root.querySelectorAll?.('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n)});root.querySelectorAll?.('[data-i18n-html]').forEach(el=>{el.innerHTML=t(el.dataset.i18nHtml)});root.querySelectorAll?.('.lang-btn').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.lang===language)));root.querySelectorAll?.('.language-switcher').forEach(el=>el.setAttribute('aria-label',t('languageSwitcher')));root.querySelectorAll?.('.controls-legend').forEach(el=>el.setAttribute('aria-label',t('controlsLabel')));const acts={left:'moveLeft',rotate:'rotate',rotateCCW:'rotateCCW',right:'moveRight',down:'softDrop',drop:'hardDrop',hold:'holdPiece',ghost:'legendGhost',pause:paused?'resume':'pause'};root.querySelectorAll?.('[data-act]').forEach(btn=>{const key=acts[btn.dataset.act];if(key)btn.setAttribute('aria-label',t(key))});root.querySelector?.('#game')?.setAttribute('aria-label',t('board'));[1,2,3].forEach((n,i)=>root.querySelector?.(`#next-${n}`)?.setAttribute('aria-label',`${t('nextPiece')} ${i+1}`));root.querySelector?.('#hold')?.setAttribute('aria-label',t('holdPiece'));updateGhostButton();updateMuteButton();updateAudioControls();updateActionButtons()}
     function setLanguage(nextLanguage,{persist=true}={}){if(!translations[nextLanguage])return;language=nextLanguage;document.documentElement.lang=language==='es-AR'?'es-AR':language;localizeRoot(document);updateMoodLabel(true);if(persist)storageSet(STORAGE.language,language);if(overlayVisible()){if(overlayKind==='ready')showReady();else if(overlayKind==='paused')showOverlay(t('paused'),t('pausedMsg'),t('resume'),t('reset'),'🙂');else if(overlayKind==='gameOver')showOverlay(t('gameOver'),t('scoreFinal',{score}),t('playAgain'),t('reset'),'😢')}notifyLanguage()}
 
     function refreshRendering(){({ctx,dpr}=fitHiDPI(canvas));nextFits=nextCanvases.map(fitHiDPI);holdFit=fitHiDPI(holdCanvas);hctx=holdFit.ctx;drawBoard();drawQueue();drawMini(holdCanvas,hctx,holdType?ROTATIONS[holdType][0]:null,holdType?COLORS[holdType]:'#000')}
     function trapOverlayFocus(e){
       if(e.key!=='Tab'||!overlayVisible())return false;
-      const focusable=[...modal.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>!el.hidden&&el.getAttribute?.('aria-hidden')!=='true');
+      const focusable=[...modal.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>!el.closest('[hidden]')&&el.getAttribute?.('aria-hidden')!=='true');
       const doc=overlay.ownerDocument||document,active=doc.activeElement;
       if(!focusable.length){e.preventDefault();modal.focus({preventScroll:true});return true}
       const first=focusable[0],last=focusable[focusable.length-1],inside=typeof modal.contains==='function'&&modal.contains(active);
@@ -583,6 +612,9 @@
     pauseBtn.addEventListener('click',()=>{activateAudio();togglePause()});
     resetBtn.addEventListener('click',()=>{activateAudio();running=false;cancelGameFrame(rafId);rafId=0;reset();showReady()});
     muteBtn.addEventListener('click',()=>toggleSound());
+    pauseMute.addEventListener('click',toggleSound);
+    musicButtons.forEach(button=>button.addEventListener('click',toggleMusic));
+    window.addEventListener('tetristeza:audiochange',updateAudioControls);
     oPrimary.addEventListener('click',()=>{activateAudio();if(!running)restartGame();else if(paused)togglePause()});
     oSecondary.addEventListener('click',()=>{running=false;cancelGameFrame(rafId);rafId=0;reset();showReady()});
 
