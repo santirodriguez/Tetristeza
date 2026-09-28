@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20" role="img" aria-label="Catalan Senyera">
+  <rect width="30" height="20" fill="#f7d117"/>
+  <g fill="#c8102e">
+    <rect y="2.222" width="30" height="2.222"/>
+    <rect y="6.666" width="30" height="2.222"/>
+    <rect y="11.11" width="30" height="2.222"/>
+    <rect y="15.554" width="30" height="2.222"/>
+  </g>
+</svg>

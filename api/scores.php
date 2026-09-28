@@ -55,21 +55,131 @@ function validSubmissionId(string $submissionId): bool
         && preg_match('/^[A-Za-z0-9_-]+$/D', $submissionId) === 1;
 }
 
-function sameOriginRequest(): bool
+function requestScheme(array $server): string
 {
-    $host = $_SERVER['HTTP_HOST'] ?? '';
+    $https = strtolower(trim((string) ($server['HTTPS'] ?? '')));
+    if ($https !== '' && $https !== 'off' && $https !== '0') {
+        return 'https';
+    }
+
+    return (int) ($server['SERVER_PORT'] ?? 0) === 443 ? 'https' : 'http';
+}
+
+function defaultPort(string $scheme): int
+{
+    return $scheme === 'https' ? 443 : 80;
+}
+
+function normalizeHost(string $host): ?string
+{
+    $host = trim($host);
     if ($host === '') {
+        return null;
+    }
+
+    if ($host[0] === '[' && str_ends_with($host, ']')) {
+        $host = substr($host, 1, -1);
+    }
+
+    if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
+        return strtolower($host);
+    }
+
+    $host = rtrim(strtolower($host), '.');
+    if (
+        strlen($host) > 253
+        || preg_match('/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\\.(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?))*$/D', $host) !== 1
+    ) {
+        return null;
+    }
+
+    return $host;
+}
+
+function expectedRequestOrigin(array $server): ?array
+{
+    $scheme = requestScheme($server);
+    $host = normalizeHost((string) ($server['SERVER_NAME'] ?? ''));
+    if ($host === null) {
+        return null;
+    }
+
+    $port = (int) ($server['SERVER_PORT'] ?? defaultPort($scheme));
+    if ($port < 1 || $port > 65535) {
+        return null;
+    }
+
+    return [$scheme, $host, $port];
+}
+
+function suppliedOrigin(string $value, bool $allowPath): ?array
+{
+    $value = trim($value);
+    if ($value === '' || strcasecmp($value, 'null') === 0) {
+        return null;
+    }
+
+    try {
+        $parts = parse_url($value);
+    } catch (ValueError $error) {
+        return null;
+    }
+
+    if (
+        !is_array($parts)
+        || isset($parts['user'])
+        || isset($parts['pass'])
+        || !isset($parts['scheme'], $parts['host'])
+    ) {
+        return null;
+    }
+
+    if (!$allowPath && (isset($parts['path']) || isset($parts['query']) || isset($parts['fragment']))) {
+        return null;
+    }
+
+    $scheme = strtolower((string) $parts['scheme']);
+    if ($scheme !== 'http' && $scheme !== 'https') {
+        return null;
+    }
+
+    $host = normalizeHost((string) $parts['host']);
+    if ($host === null) {
+        return null;
+    }
+
+    $port = isset($parts['port']) ? (int) $parts['port'] : defaultPort($scheme);
+    if ($port < 1 || $port > 65535) {
+        return null;
+    }
+
+    return [$scheme, $host, $port];
+}
+
+function sameOriginRequest(array $server): bool
+{
+    $hasOrigin = array_key_exists('HTTP_ORIGIN', $server);
+    $hasReferer = array_key_exists('HTTP_REFERER', $server);
+    if (!$hasOrigin && !$hasReferer) {
+        // Preserve non-browser clients that omit both headers.
+        return true;
+    }
+
+    $expected = expectedRequestOrigin($server);
+    if ($expected === null) {
         return false;
     }
 
-    $expectedHost = preg_replace('/:\d+$/', '', $host);
-    foreach (['HTTP_ORIGIN', 'HTTP_REFERER'] as $header) {
-        if (empty($_SERVER[$header])) {
-            continue;
+    if ($hasOrigin) {
+        $origin = suppliedOrigin((string) $server['HTTP_ORIGIN'], false);
+        if ($origin === null || $origin !== $expected) {
+            return false;
         }
+    }
 
-        $sourceHost = parse_url((string) $_SERVER[$header], PHP_URL_HOST);
-        if (!is_string($sourceHost) || strcasecmp($sourceHost, (string) $expectedHost) !== 0) {
+    if ($hasReferer) {
+        $referer = suppliedOrigin((string) $server['HTTP_REFERER'], true);
+        if ($referer === null || $referer !== $expected) {
             return false;
         }
     }
@@ -77,21 +187,42 @@ function sameOriginRequest(): bool
     return true;
 }
 
-function privateConfiguredPath(string $configured, string $documentRoot): string
+function pathWithin(string $path, string $root): bool
 {
-    $configuredDir = realpath(dirname($configured));
+    $path = rtrim($path, DIRECTORY_SEPARATOR);
+    $root = rtrim($root, DIRECTORY_SEPARATOR);
+
+    return $path === $root
+        || str_starts_with($path . DIRECTORY_SEPARATOR, $root . DIRECTORY_SEPARATOR);
+}
+
+function privateDatabasePath(string $candidate, string $documentRoot): string
+{
     $publicRoot = realpath($documentRoot);
-    if ($configuredDir === false || $publicRoot === false) {
-        throw new RuntimeException('Configured private storage path is invalid.');
+    $parent = realpath(dirname($candidate));
+    $basename = basename($candidate);
+
+    if (
+        $publicRoot === false
+        || $parent === false
+        || $basename === ''
+        || $basename === '.'
+        || $basename === '..'
+        || pathWithin($parent, $publicRoot)
+    ) {
+        throw new RuntimeException('Private storage path is invalid.');
     }
 
-    $configuredPrefix = rtrim($configuredDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-    $publicPrefix = rtrim($publicRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-    if ($configuredDir === $publicRoot || strpos($configuredPrefix, $publicPrefix) === 0) {
-        throw new RuntimeException('Configured storage must be outside the public document root.');
+    if (file_exists($candidate) || is_link($candidate)) {
+        $resolved = realpath($candidate);
+        if ($resolved === false || is_dir($resolved) || pathWithin($resolved, $publicRoot)) {
+            throw new RuntimeException('Private storage target is invalid.');
+        }
+
+        return $resolved;
     }
 
-    return $configuredDir . DIRECTORY_SEPARATOR . basename($configured);
+    return $parent . DIRECTORY_SEPARATOR . $basename;
 }
 
 function databasePath(): string
@@ -103,7 +234,7 @@ function databasePath(): string
 
     $configured = getenv('TETRISTEZA_DB_PATH');
     if (is_string($configured) && trim($configured) !== '') {
-        return privateConfiguredPath(trim($configured), $documentRoot);
+        return privateDatabasePath(trim($configured), $documentRoot);
     }
 
     $privateDir = dirname(rtrim($documentRoot, DIRECTORY_SEPARATOR)) . DIRECTORY_SEPARATOR . 'tetristeza-private';
@@ -114,7 +245,7 @@ function databasePath(): string
         throw new RuntimeException('Private storage permissions unavailable.');
     }
 
-    return $privateDir . DIRECTORY_SEPARATOR . 'scores.sqlite';
+    return privateDatabasePath($privateDir . DIRECTORY_SEPARATOR . 'scores.sqlite', $documentRoot);
 }
 
 function openDatabase(): PDO
@@ -158,28 +289,22 @@ function openDatabase(): PDO
     return $db;
 }
 
-try {
-    $db = openDatabase();
-} catch (Throwable $error) {
-    respond(503, ['ok' => false, 'error' => 'leaderboard_unavailable']);
+$method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+if ($method !== 'GET' && $method !== 'POST') {
+    header('Allow: GET, POST');
+    respond(405, ['ok' => false, 'error' => 'method_not_allowed']);
 }
-
-$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 if ($method === 'GET') {
     try {
+        $db = openDatabase();
         respond(200, ['ok' => true, 'scores' => publicScores($db)]);
     } catch (Throwable $error) {
         respond(503, ['ok' => false, 'error' => 'leaderboard_unavailable']);
     }
 }
 
-if ($method !== 'POST') {
-    header('Allow: GET, POST');
-    respond(405, ['ok' => false, 'error' => 'method_not_allowed']);
-}
-
-if (!sameOriginRequest()) {
+if (!sameOriginRequest($_SERVER)) {
     respond(403, ['ok' => false, 'error' => 'origin_not_allowed']);
 }
 
@@ -188,37 +313,14 @@ if ($contentType !== 'application/json') {
     respond(415, ['ok' => false, 'error' => 'json_required']);
 }
 
-$contentLength = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+$contentLengthRaw = trim((string) ($_SERVER['CONTENT_LENGTH'] ?? ''));
+if ($contentLengthRaw !== '' && preg_match('/^\\d+$/D', $contentLengthRaw) !== 1) {
+    respond(400, ['ok' => false, 'error' => 'invalid_request']);
+}
+$contentLength = $contentLengthRaw === '' ? 0 : (int) $contentLengthRaw;
 if ($contentLength > MAX_REQUEST_BYTES) {
     respond(413, ['ok' => false, 'error' => 'request_too_large']);
 }
-
-$forwardedProto = strtolower(trim(explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0]));
-$isHttps = (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') || $forwardedProto === 'https';
-if (!session_start([
-    'cookie_httponly' => true,
-    'cookie_samesite' => 'Strict',
-    'cookie_secure' => $isHttps,
-    'use_strict_mode' => true,
-])) {
-    respond(503, ['ok' => false, 'error' => 'leaderboard_unavailable']);
-}
-
-$now = time();
-$recent = array_values(array_filter(
-    $_SESSION['score_posts'] ?? [],
-    static function ($timestamp) use ($now): bool {
-        return is_int($timestamp) && $timestamp > $now - 60;
-    }
-));
-if (count($recent) >= 5) {
-    session_write_close();
-    header('Retry-After: 60');
-    respond(429, ['ok' => false, 'error' => 'rate_limited']);
-}
-$recent[] = $now;
-$_SESSION['score_posts'] = $recent;
-session_write_close();
 
 $raw = file_get_contents('php://input', false, null, 0, MAX_REQUEST_BYTES + 1);
 if ($raw === false) {
@@ -268,6 +370,38 @@ if (!array_key_exists('score', $data) || !is_int($data['score'])) {
 $score = $data['score'];
 if ($score <= 0 || $score > MAX_SCORE) {
     respond(422, ['ok' => false, 'error' => 'invalid_score']);
+}
+
+$isHttps = requestScheme($_SERVER) === 'https';
+if (!session_start([
+    'cookie_httponly' => true,
+    'cookie_samesite' => 'Strict',
+    'cookie_secure' => $isHttps,
+    'use_strict_mode' => true,
+])) {
+    respond(503, ['ok' => false, 'error' => 'leaderboard_unavailable']);
+}
+
+$now = time();
+$recent = array_values(array_filter(
+    $_SESSION['score_posts'] ?? [],
+    static function ($timestamp) use ($now): bool {
+        return is_int($timestamp) && $timestamp > $now - 60;
+    }
+));
+if (count($recent) >= 5) {
+    session_write_close();
+    header('Retry-After: 60');
+    respond(429, ['ok' => false, 'error' => 'rate_limited']);
+}
+$recent[] = $now;
+$_SESSION['score_posts'] = $recent;
+session_write_close();
+
+try {
+    $db = openDatabase();
+} catch (Throwable $error) {
+    respond(503, ['ok' => false, 'error' => 'leaderboard_unavailable']);
 }
 
 $transactionStarted = false;

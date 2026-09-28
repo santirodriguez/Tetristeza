@@ -5,94 +5,141 @@
 </p>
 
 <p align="center">
-  <strong>A tiny falling-block puzzler with neon colors and questionable emotional stability.</strong>
+  <strong>A tiny neon falling-block game with questionable emotional stability.</strong>
 </p>
 
 <p align="center">
-  <strong>🇺🇸 English</strong> &nbsp;·&nbsp;
-  <strong>🇦🇷 Español</strong> &nbsp;·&nbsp;
-  <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Catalonia.svg" alt="Catalan Senyera" height="14" /> <strong>Català</strong>
+  <a href="https://santiagorodriguez.com/Tetristeza/">
+    <img src="https://img.shields.io/badge/PLAY_ONLINE-22d3ee?style=for-the-badge&labelColor=111827" alt="Play Tetristeza online" />
+  </a>
+  <a href="https://github.com/santirodriguez/Tetristeza/releases">
+    <img src="https://img.shields.io/badge/RELEASE-v1.4.0-8b5cf6?style=for-the-badge&labelColor=111827" alt="Current release v1.4.0" />
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/LICENSE-GPL--3.0-f472b6?style=for-the-badge&labelColor=111827" alt="GPL-3.0 license" />
+  </a>
 </p>
-
-Tetristeza is a lightweight browser game built with plain HTML5 Canvas and vanilla JavaScript. Open it, play a few lines, make one terrible decision, repeat as needed.
-
-## Why
-
-I wanted a falling-block game that felt immediate: open it, play it, close it. Simple enough to stay out of the way, but with enough personality to make losing slightly more entertaining.
-
-Then I added Hold, Ghost, particles, actual moods, a global Top 10, and enough wall kicks to make the blocks slightly less vindictive.
-
-## Play
-
-**Online:** play at **https://santiagorodriguez.com/Tetristeza/**.
-
-**Current release:** **v1.4.0**.
-
-**Local:** clone or download the repository, open `index.html`, and press Start. Opening it directly from disk uses an isolated local Top 10 for testing; an HTTP(S) deployment uses the real server leaderboard.
-
-## Screenshot
 
 <p align="center">
-  <img src="assets/screenshots/screenshot-v1.4.png" alt="Tetristeza v1.4.0 gameplay" width="900" />
+  <img src="assets/flags/us.svg" alt="" width="20" /> <strong>English</strong>
+  &nbsp;·&nbsp;
+  <img src="assets/flags/argentina.svg" alt="" width="20" /> <strong>Español</strong>
+  &nbsp;·&nbsp;
+  <img src="assets/flags/senyera.svg" alt="" width="20" /> <strong>Català</strong>
 </p>
 
-## What it does
+<p align="center">
+  Falling blocks, neon colors and increasingly dramatic emotional consequences.
+</p>
 
-Tetristeza keeps the falling-block essentials — **7-bag pieces, Hold, Ghost, a 3-piece Next queue, scoring, combos, levels, and back-to-back bonuses** — with SRS-style rotation and a finite lock delay so pieces eventually have to accept their fate.
+---
 
-It plays with keyboard or touch, adapts the board to the available viewport, remembers your language and personal best, and includes a **global Top 10**. On desktop, the live game can also move into its own resizable window without starting a second session.
+## 🎮 Play
 
-Particles, tiny Web Audio noises, HiDPI rendering, and reduced-motion support give it a little polish without making the game feel heavier than it needs to be.
+<p align="center">
+  <a href="https://santiagorodriguez.com/Tetristeza/">
+    <img src="https://img.shields.io/badge/▶_PLAY_TETRISTEZA-111827?style=for-the-badge" alt="Play Tetristeza" />
+  </a>
+</p>
 
-## Controls
+Play it in a modern browser, or open `index.html` locally.
 
-| Action | Key |
-| --- | --- |
+---
+
+## 📸 Gameplay
+
+<p align="center">
+  <img src="assets/screenshots/screenshot-v1.5.png" alt="Tetristeza gameplay" width="900" />
+</p>
+
+<p align="center">
+  <sub>Tetristeza v1.5.0 gameplay.</sub>
+</p>
+
+---
+
+## ✨ Highlights
+
+|  |  |  |
+| :---: | :---: | :---: |
+| **🧱 Arcade core** | **👻 Hold, Ghost & Next** | **🏆 Global Top 10** |
+| 7-bag pieces, SRS-style rotation, combos, levels and back-to-back play. | Hold one piece, preview the next three and toggle Ghost whenever optimism becomes suspicious. | Qualifying scores can join a shared arcade ranking. |
+| **📱 Touch friendly** | **🪟 Move to window** | **🌐 Three languages** |
+| Responsive controls with both rotation directions and press-and-hold movement. | Move the live game into its own resizable window without losing state. | English, Español and Català. |
+
+Sound, Ghost, language and personal Best are remembered locally.
+
+---
+
+## ⌨️ Controls
+
+| Action | Keyboard |
+| --- | :---: |
 | Move | `←` `→` |
-| Rotate clockwise | `↑` or `X` |
-| Rotate counter-clockwise | `Z` |
-| Soft drop | `↓` |
-| Hard drop | `Space` |
+| Rotate | `↑` / `X` · `Z` |
+| Soft / hard drop | `↓` · `Space` |
 | Hold | `C` |
-| Pause / Resume | `P` or `Esc` |
-| Quick restart | `R` |
-| Ghost toggle | `G` |
-| Mute | `M` |
+| Pause / Resume | `P` / `Esc` |
+| Restart | `R` |
+| Ghost | `G` |
+| Sound | `M` |
 
-On touch devices, use the on-screen controls. Left, right, and soft drop support press-and-hold; Pause stays available in the active mobile control dock. On desktop, **Move to window** transfers the same live game surface to a resizable window; closing it or choosing **Return to page** puts the game back without starting a second session. If the active game window is hidden, the match pauses instead of quietly carrying on without you.
+Touch controls are shown on screen. On desktop, **Move to window** transfers the same running game into a separate resizable window.
 
-## Scoring & Levels
+---
 
-- **Single:** 100 × level
-- **Double:** 300 × level
-- **Triple:** 500 × level
-- **Tetris:** 800 × level, with a 50% back-to-back bonus
-- **Soft drop:** +1 per cell
-- **Hard drop:** +2 per cell
-- **Combo:** +50 × level × combo streak
-- The level increases every **10 lines**
-- Gravity accelerates down to a minimum interval of **120 ms**
+## 🏆 Top 10
 
-## Global Top 10
+At Game Over, a qualifying score can enter the global Top 10 with a player name and an optional private email.
 
-At Game Over, a qualifying score can join the global Top 10 with a name of up to **8 characters** and an optional private email. Only the best ten survive; everyone else is politely forgotten by SQLite. Earlier scores win ties.
+Only **name and score** are shown publicly. Earlier scores win ties.
 
-It is intentionally an arcade leaderboard, not an esports anti-cheat department.
+If a save loses its network response, retries reuse the same protected submission for the server's 15-minute receipt window.
 
-## Technical notes
+It is an arcade leaderboard, not an esports anti-cheat department.
 
-The game stays deliberately simple: plain HTML, CSS, and JavaScript. The global Top 10 is a small self-hosted PHP + SQLite service; opening `index.html` directly from disk falls back to an isolated local leaderboard.
+---
 
-The detachable window moves the real game surface instead of mirroring it, so there is still only one board and one game state. Browser support follows modern standards across current Firefox, Chromium-based browsers, and Safari.
+<details>
+<summary><strong>🧮 Scoring</strong></summary>
 
-The leaderboard database stays outside the public document root by default; `TETRISTEZA_DB_PATH` can point it somewhere else when needed.
+<br />
 
-## Author
+- Single: **100 × level**
+- Double: **300 × level**
+- Triple: **500 × level**
+- Tetris: **800 × level**
+- Back-to-back Tetris: **+50%**
+- Soft drop: **+1 per cell**
+- Hard drop: **+2 per cell**
+- Combo: **+50 × level × streak**
+- Level increases every **10 lines**
+
+</details>
+
+<details>
+<summary><strong>🛠️ Technical notes</strong></summary>
+
+<br />
+
+Tetristeza is intentionally lightweight: plain HTML, CSS and JavaScript.
+
+The global Top 10 uses a small PHP + SQLite service. The detachable window moves the real game DOM instead of mirroring it, so there is still only one board and one game state.
+
+Modern Firefox, Chromium-based browsers and Safari are the intended targets.
+
+</details>
+
+---
+
+## 👤 Author
 
 Made by **[Santiago Rodriguez](https://santiagorodriguez.com)**.
 
-<a href="https://santiagorodriguez.com/donate"><img src="assets/badges/donate.svg" alt="Donate" height="52" /></a>
+<a href="https://santiagorodriguez.com/donate">
+  <img src="assets/badges/donate.svg" alt="Donate" height="52" />
+</a>
 
-## License
+## 📄 License
 
-Tetristeza is released under the **GNU General Public License v3.0 (GPL-3.0)**. See [LICENSE](LICENSE) for the full license text.
+**GNU General Public License v3.0 (GPL-3.0)** — see [LICENSE](LICENSE).
