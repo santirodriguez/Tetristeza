@@ -162,9 +162,9 @@ test('interruption drops voices, waits for gesture; closed context can be replac
 test('Game Over has one finite tail, state refresh cannot replay it', async () => {
   const f = fixture(); f.set(); f.service.activate(); await flush();
   f.set({ active: false }); f.service.play('gameOver');
-  const c = f.contexts[0]; assert.equal(c.oscillators.length, 2);
-  f.set(); f.advance(350); assert.equal(c.state, 'suspended');
-  f.set(); assert.equal(c.oscillators.length, 2); assert.equal(f.timers.size, 0);
+  const c = f.contexts[0]; assert.equal(c.oscillators.length, 5);
+  f.set(); f.advance(850); assert.equal(c.state, 'suspended');
+  f.set(); assert.equal(c.oscillators.length, 5); assert.equal(f.timers.size, 0);
 });
 
 test('detached host keeps one engine and migrates idle cleanup; unload closes it', async () => {
@@ -270,7 +270,7 @@ test('restart during rendering uses the latest session and closed-context recove
   assert.equal(f.contexts.length, 2); assert.equal(f.renders.length, 1);
   assert.equal(f.contexts[0].sources[0].disconnected, true);
   assert.equal(f.contexts[1].sources.length, 1);
-  f.set({ active: false }); f.service.play('gameOver'); f.advance(350);
+  f.set({ active: false }); f.service.play('gameOver'); f.advance(850);
   assert.equal(f.contexts[1].sources[0].disconnected, true);
   assert.equal(f.contexts[1].state, 'suspended');
 });

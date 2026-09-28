@@ -13,7 +13,7 @@
     <img src="https://img.shields.io/badge/PLAY_ONLINE-22d3ee?style=for-the-badge&labelColor=111827" alt="Play Tetristeza online" />
   </a>
   <a href="https://github.com/santirodriguez/Tetristeza/releases">
-    <img src="https://img.shields.io/badge/RELEASE-v1.5.0-8b5cf6?style=for-the-badge&labelColor=111827" alt="Current release v1.5.0" />
+    <img src="https://img.shields.io/github/v/release/santirodriguez/Tetristeza?style=for-the-badge&labelColor=111827&color=8b5cf6" alt="Latest stable release" />
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/LICENSE-GPL--3.0-f472b6?style=for-the-badge&labelColor=111827" alt="GPL-3.0 license" />
@@ -49,11 +49,11 @@ Play it in a modern browser, or open `index.html` locally.
 ## 📸 Gameplay
 
 <p align="center">
-  <img src="assets/screenshots/screenshot-v1.5.png" alt="Tetristeza gameplay" width="900" />
+  <img src="assets/screenshots/screenshot-v1.6.0.png" alt="Tetristeza gameplay" width="900" />
 </p>
 
 <p align="center">
-  <sub>Tetristeza v1.5.0 gameplay.</sub>
+  <sub>Tetristeza v1.6.0 candidate gameplay.</sub>
 </p>
 
 ---
@@ -67,7 +67,9 @@ Play it in a modern browser, or open `index.html` locally.
 | **📱 Touch friendly** | **🪟 Move to window** | **🌐 Three languages** |
 | Responsive controls with both rotation directions and press-and-hold movement. | Move the live game into its own resizable window without losing state. | English, Español and Català. |
 
-Sound, Ghost, language and personal Best are remembered locally.
+Sound, Music, Ghost, language and personal Best are remembered locally.
+
+Original chiptune music, responsive arcade effects and a short Game Over melody are synthesized in the browser, with no audio downloads. Music starts with play and is on by default; a previously saved off setting stays off. **Sound / M** mutes everything. Toggle **Music** independently on the control card or in **Pause**, where Sound is also available.
 
 ---
 
@@ -94,7 +96,9 @@ At Game Over, a qualifying score can enter the global Top 10 with a player name 
 
 Only **name and score** are shown publicly. Earlier scores win ties.
 
-If a save loses its network response, retries reuse the same protected submission for the server's 15-minute receipt window.
+If a save loses its network response, retries reuse the same protected submission for the server's 15-minute receipt window. After it expires, refresh the ranking to check the result.
+
+Opening `index.html` directly uses a local-only Top 10 for testing; it never sends scores or stores email addresses.
 
 It is an arcade leaderboard, not an esports anti-cheat department.
 
@@ -124,9 +128,15 @@ It is an arcade leaderboard, not an esports anti-cheat department.
 
 Tetristeza is intentionally lightweight: plain HTML, CSS and JavaScript.
 
-The global Top 10 uses a small PHP + SQLite service. The detachable window moves the real game DOM instead of mirroring it, so there is still only one board and one game state.
+The global Top 10 requires PHP 8+, PDO SQLite and a private writable storage directory outside `DOCUMENT_ROOT`. By default, the service creates `tetristeza-private/scores.sqlite` beside the document root; `TETRISTEZA_DB_PATH` can select another private database path. Do not package a live database or place it in the public web directory.
 
-Modern Firefox, Chromium-based browsers and Safari are the intended targets.
+ The detachable window moves the real game DOM instead of mirroring it, so there is still only one board and one game state.
+
+Modern Firefox, Chromium-based browsers and Safari are the intended targets. Audio starts only after a player gesture; pausing or hiding the game silences it. Unsupported audio leaves the game playable. Native Chromium has been checked over HTTP and `file://`; Firefox, Safari and physical mobile audio/interruption checks remain release acceptance items.
+
+Run the dependency-free audio lifecycle checks with `node --test tests/audio.test.cjs`. For a manual smoke check, play over HTTP and directly from `index.html`, toggle Sound/Music, pause, change language, and move the live game to a window and back. Verify keyboard focus and mobile Pause controls. Test leaderboard failures and retries only against an isolated PHP service with a temporary private database, never by submitting test scores to production.
+
+The runtime logo is a transparent lossless 640 px WebP derived from the original SVG, which remains the source and README artwork. To regenerate it with a temporary Sharp installation: `sharp('assets/branding/tetristeza-logo-1.svg').resize({width:640}).webp({lossless:true}).toFile('assets/branding/tetristeza-logo-runtime.webp')`. No build toolchain is required to play.
 
 </details>
 

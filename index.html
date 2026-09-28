@@ -260,7 +260,7 @@
     <div class="wrap">
       <div class="brand-row">
         <a class="brand" href="#game-section" aria-label="Tetristeza">
-          <img src="assets/branding/tetristeza-logo-1.svg" alt="Tetristeza" />
+          <img src="assets/branding/tetristeza-logo-runtime.webp" width="640" height="196" alt="Tetristeza" onerror="this.onerror=null;this.src='assets/branding/tetristeza-logo-1.svg'" />
         </a>
         <div class="language-switcher" aria-label="Language selector">
           <button class="lang-btn" type="button" data-lang="en" aria-label="English (United States)" aria-pressed="true"><span class="flag-icon flag-us" aria-hidden="true"></span></button>
@@ -440,7 +440,7 @@
     function updateParticles(dt){for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx*dt*.002;p.y+=p.vy*dt*.002;if(p.kind==='drop')p.vy+=.00035*dt;p.life-=.0022*dt;if(p.life<=0)particles.splice(i,1)}}
     function drawParticles(){const{cellW,cellH}=getCell();ctx.save();for(const p of particles){const s=Math.max(1,Math.min(cellW,cellH)*.25);ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.fillRect(p.x*cellW-s/2,p.y*cellH-s/2,s,s)}ctx.restore()}
 
-    const audio={enabled:storageBoolean(STORAGE.sound,true),musicEnabled:storageBoolean(STORAGE.music,false)};
+    const audio={enabled:storageBoolean(STORAGE.sound,true),musicEnabled:storageBoolean(STORAGE.music,true)};
     function audioCall(method,...args){try{return window.TetristezaAudio?.[method]?.(...args)}catch{}}
     function syncAudio(){audioCall('setState',{enabled:audio.enabled,musicEnabled:audio.musicEnabled,active:running&&!paused&&overlayKind==='playing',visible:!hostDocument.hidden,host:hostWindow})}
     function activateAudio(){syncAudio();audioCall('activate')}
@@ -534,12 +534,13 @@
     function refreshRendering(){({ctx,dpr}=fitHiDPI(canvas));nextFits=nextCanvases.map(fitHiDPI);holdFit=fitHiDPI(holdCanvas);hctx=holdFit.ctx;drawBoard();drawQueue();drawMini(holdCanvas,hctx,holdType?ROTATIONS[holdType][0]:null,holdType?COLORS[holdType]:'#000')}
     function trapOverlayFocus(e){
       if(e.key!=='Tab'||!overlayVisible())return false;
-      const focusable=[...modal.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>!el.closest('[hidden]')&&el.getAttribute?.('aria-hidden')!=='true');
-      const doc=overlay.ownerDocument||document,active=doc.activeElement;
+      const doc=overlay.ownerDocument||document,view=doc.defaultView||window;
+      const focusable=[...modal.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>!el.closest('[hidden],[inert],[aria-hidden="true"]')&&el.tabIndex>=0&&el.getClientRects().length&&view.getComputedStyle(el).visibility==='visible');
+      const active=doc.activeElement;
       if(!focusable.length){e.preventDefault();modal.focus({preventScroll:true});return true}
-      const first=focusable[0],last=focusable[focusable.length-1],inside=typeof modal.contains==='function'&&modal.contains(active);
-      if(e.shiftKey&&(!inside||active===first)){e.preventDefault();last.focus({preventScroll:true});return true}
-      if(!e.shiftKey&&(!inside||active===last)){e.preventDefault();first.focus({preventScroll:true});return true}
+      const first=focusable[0],last=focusable[focusable.length-1],index=focusable.indexOf(active);
+      if(e.shiftKey&&(index<=0)){e.preventDefault();last.focus({preventScroll:true});return true}
+      if(!e.shiftKey&&(index<0||active===last)){e.preventDefault();first.focus({preventScroll:true});return true}
       return false
     }
     function handleKeyDown(e){

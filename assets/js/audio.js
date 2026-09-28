@@ -90,7 +90,7 @@
         // Second half answers the opening; rests leave room for game feedback.
         if (step !== 3 && !(bar % 4 === 3 && step === 7)) {
           const pitch = phrase[(step + (bar >= 8 ? 2 : 0)) % 8] + (bar >= 12 && step === 6 ? 12 : 0);
-          hit(at + step / 2, .18, step % 2 ? .09 : .12, 'triangle', pitch);
+          hit(at + step / 2, .16, step % 2 ? .042 : .058, 'square', pitch);
         }
         hit(at + step / 2, .035, step % 2 ? .028 : .018, 'noise');
       }
@@ -275,9 +275,12 @@
     if (ending) {
       clearIdle(); cancelVoices();
       safely(() => ramp(master.gain, 1));
-      note(294, .14, 'triangle', .065, 0, 220);
-      note(196, .21, 'sine', .09, .10, 98);
-      idleAfter(340);
+      // A brief original chiptune coda; never a looping Game Over soundtrack.
+      [659.25, 523.25, 440, 329.63].forEach((pitch, i) => {
+        note(pitch, i === 3 ? .30 : .13, 'triangle', .07, i * .15);
+      });
+      note(110, .36, 'sine', .065, .45);
+      idleAfter(840);
     } else if (cue === 'rotate') note(520, .055, 'triangle', .055, 0, 780);
     else if (cue === 'hold') {
       note(330, .075, 'sine', .07);
