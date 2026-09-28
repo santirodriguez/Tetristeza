@@ -13,7 +13,7 @@
     <img src="https://img.shields.io/badge/PLAY_ONLINE-22d3ee?style=for-the-badge&labelColor=111827" alt="Play Tetristeza online" />
   </a>
   <a href="https://github.com/santirodriguez/Tetristeza/releases">
-    <img src="https://img.shields.io/badge/RELEASE-v1.4.0-8b5cf6?style=for-the-badge&labelColor=111827" alt="Current release v1.4.0" />
+    <img src="https://img.shields.io/badge/RELEASE-v1.5.0-8b5cf6?style=for-the-badge&labelColor=111827" alt="Current release v1.5.0" />
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/LICENSE-GPL--3.0-f472b6?style=for-the-badge&labelColor=111827" alt="GPL-3.0 license" />
