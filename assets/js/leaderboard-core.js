@@ -18,7 +18,7 @@
       invalidEmail: 'Enter a valid email or leave it blank.', saveFailed: 'Could not save the score.',
       rateLimited: 'Too many attempts. Try again in {seconds}s.',
       retryAmbiguous: 'The save result is uncertain. Retry uses the same protected submission.',
-      retryExpired: 'The protected retry window expired. Check the Top 10 before trying again.',
+      retryExpired: 'The protected retry window expired. Refresh the Top 10 to check the result.', refreshRanking: 'Refresh Top 10',
       displaced: 'The Top 10 changed before your score was saved.'
     },
     'es-AR': {
@@ -32,7 +32,7 @@
       invalidEmail: 'Ingresá un email válido o dejalo vacío.', saveFailed: 'No se pudo guardar el puntaje.',
       rateLimited: 'Demasiados intentos. Probá de nuevo en {seconds}s.',
       retryAmbiguous: 'El resultado del guardado es incierto. El reintento usa el mismo envío protegido.',
-      retryExpired: 'Venció la ventana de reintento protegido. Revisá el Top 10 antes de intentar otra vez.',
+      retryExpired: 'Venció la ventana de reintento protegido. Actualizá el Top 10 para revisar el resultado.', refreshRanking: 'Actualizar Top 10',
       displaced: 'El Top 10 cambió antes de guardar tu puntaje.'
     },
     ca: {
@@ -46,7 +46,7 @@
       invalidEmail: 'Introdueix un email vàlid o deixa’l buit.', saveFailed: 'No s’ha pogut desar la puntuació.',
       rateLimited: 'Massa intents. Torna-ho a provar d’aquí a {seconds}s.',
       retryAmbiguous: 'El resultat del desament és incert. El reintent utilitza el mateix enviament protegit.',
-      retryExpired: 'Ha vençut la finestra de reintent protegit. Revisa el Top 10 abans de tornar-ho a provar.',
+      retryExpired: 'Ha vençut la finestra de reintent protegit. Actualitza el Top 10 per comprovar el resultat.', refreshRanking: 'Actualitza el Top 10',
       displaced: 'El Top 10 ha canviat abans de desar la puntuació.'
     }
   };
@@ -105,6 +105,10 @@
   let pendingSubmission = null;
   let retryLockedSubmission = null;
   let draft = null;
+  let formFeedback = {};
+  let retryExpiryTimer = null;
+  let submissionNotice = null;
+  let highlightPosition = null;
   let cachedScores = null;
   let scoresLoading = false;
   let loadFailed = false;
@@ -233,12 +237,10 @@
   }
 
   function normalizePublicScores(entries) {
-    if (!Array.isArray(entries)) return null;
-    return entries
-      .filter(entry => entry && typeof entry.name === 'string')
-      .map(entry => ({name: Array.from(entry.name).slice(0, 8).join(''), score: Number(entry.score)}))
-      .filter(entry => Number.isSafeInteger(entry.score) && entry.score > 0)
-      .slice(0, 10);
+    if (!Array.isArray(entries) || entries.length > 10 || entries.some(entry =>
+      !entry || typeof entry.name !== 'string' || !validName(entry.name)
+      || !Number.isSafeInteger(entry.score) || entry.score <= 0)) return null;
+    return entries.map(({name, score}) => ({name, score}));
   }
 
   function renderRanking(scores, highlightPosition = null) {
@@ -443,29 +445,62 @@
     save.className = 'control btn-accent leaderboard-save';
     save.textContent = c.save;
 
+    const refresh = document.createElement('button');
+    refresh.type = 'button';
+    refresh.className = 'control leaderboard-refresh';
+    refresh.textContent = c.refreshRanking;
+    refresh.hidden = true;
+    refresh.addEventListener('click', () => {
+      if (gameOverActive && currentDraft.sessionId === gameOverSessionId) showGameOverLeaderboard({forceLoad: true});
+    });
+
+    function updateRetryState() {
+      if (retryExpiryTimer !== null) window.clearTimeout(retryExpiryTimer);
+      retryExpiryTimer = null;
+      const lock = retryLockedSubmission?.sessionId === gameOverSessionId ? retryLockedSubmission : null;
+      if (!lock) return false;
+      nameInput.value = lock.payload.name; emailInput.value = lock.payload.email;
+      nameInput.disabled = emailInput.disabled = true;
+      const remaining = SUBMISSION_RECEIPT_TTL_MS - (Date.now() - lock.createdAt);
+      const expired = remaining <= 0;
+      refresh.hidden = !expired;
+      error.textContent = text()[expired ? 'retryExpired' : 'retryAmbiguous'];
+      error.setAttribute('role', 'alert');
+      if (expired) save.disabled = true;
+      else retryExpiryTimer = window.setTimeout(() => {
+        if (form.isConnected && gameOverActive && currentDraft.sessionId === gameOverSessionId) updateRetryState();
+      }, remaining);
+      return expired;
+    }
+
     function storeDraft() {
       if (draft?.sessionId !== gameOverSessionId || draft.score !== score) return;
       draft.name = nameInput.value;
       draft.email = emailInput.value;
     }
 
+    let rateTimer = null;
     function applyRateLimit() {
+      if (rateTimer !== null) window.clearTimeout(rateTimer);
+      rateTimer = null;
+      if (retryLockedSubmission?.sessionId === gameOverSessionId && Date.now() - retryLockedSubmission.createdAt >= SUBMISSION_RECEIPT_TTL_MS) { updateRetryState(); return true; }
       const remaining = rateLimitUntil - Date.now();
       if (remaining <= 0) return false;
       const seconds = Math.max(1, Math.ceil(remaining / 1000));
       save.disabled = true;
       error.textContent = formatCopy('rateLimited', {seconds});
       error.setAttribute('role', 'alert');
-      window.setTimeout(() => {
-        if (!gameOverActive || currentDraft.sessionId !== gameOverSessionId) return;
+      rateTimer = window.setTimeout(() => {
+        if (!form.isConnected || !gameOverActive || currentDraft.sessionId !== gameOverSessionId) return;
         if (rateLimitUntil > Date.now()) {
           applyRateLimit();
           return;
         }
         save.disabled = false;
         save.textContent = text().save;
-        error.textContent = '';
+        error.textContent = formFeedback.error ? text()[formFeedback.error] : '';
         error.setAttribute('role', 'status');
+        updateRetryState();
       }, Math.min(remaining, 1000));
       return true;
     }
@@ -474,39 +509,28 @@
       const limited = Array.from(nameInput.value).slice(0, 8).join('');
       if (limited !== nameInput.value) nameInput.value = limited;
       nameInput.removeAttribute('aria-invalid');
+      delete formFeedback.name;
       nameError.textContent = '';
       storeDraft();
     });
     emailInput.addEventListener('input', () => {
       emailInput.removeAttribute('aria-invalid');
+      delete formFeedback.email;
       emailError.textContent = '';
       storeDraft();
     });
 
-    form.append(formTitle, formSubtitle, nameLabel, emailLabel, error, save);
+    form.append(formTitle, formSubtitle, nameLabel, emailLabel, error, save, refresh);
+    if (formFeedback.name) { nameInput.setAttribute('aria-invalid', 'true'); nameError.textContent = c.invalidName; }
+    if (formFeedback.email) { emailInput.setAttribute('aria-invalid', 'true'); emailError.textContent = c.invalidEmail; }
+    if (formFeedback.error) { error.textContent = c[formFeedback.error]; error.setAttribute('role', 'alert'); }
 
-    const retryLock = retryLockedSubmission?.sessionId === gameOverSessionId
-      && retryLockedSubmission.score === score
-      ? retryLockedSubmission
-      : null;
-
-    if (retryLock) {
-      nameInput.value = retryLock.payload.name;
-      emailInput.value = retryLock.payload.email;
-      nameInput.disabled = true;
-      emailInput.disabled = true;
-      if (Date.now() - retryLock.createdAt >= SUBMISSION_RECEIPT_TTL_MS) {
-        error.textContent = c.retryExpired;
-        error.setAttribute('role', 'alert');
-        save.disabled = true;
-      } else {
-        error.textContent = c.retryAmbiguous;
-      }
-    }
+    updateRetryState();
     applyRateLimit();
 
     form.addEventListener('submit', async event => {
       event.preventDefault();
+      formFeedback = {};
       nameError.textContent = '';
       emailError.textContent = '';
       error.textContent = '';
@@ -525,9 +549,7 @@
       let payload;
       if (activeRetry) {
         if (Date.now() - activeRetry.createdAt >= SUBMISSION_RECEIPT_TTL_MS) {
-          error.textContent = text().retryExpired;
-          error.setAttribute('role', 'alert');
-          save.disabled = true;
+          updateRetryState();
           return;
         }
         payload = activeRetry.payload;
@@ -538,12 +560,14 @@
         currentDraft.email = emailInput.value;
 
         if (!validName(name)) {
+          formFeedback.name = true;
           nameInput.setAttribute('aria-invalid', 'true');
           nameError.textContent = text().invalidName;
           nameInput.focus();
           return;
         }
         if (!validEmail(email)) {
+          formFeedback.email = true;
           emailInput.setAttribute('aria-invalid', 'true');
           emailError.textContent = text().invalidEmail;
           emailInput.focus();
@@ -567,27 +591,31 @@
         if (!gameOverActive || submitSession !== gameOverSessionId) return;
 
         if (!response.ok) {
-          ambiguousFailure = false;
-          const serverError = typeof result?.error === 'string' ? result.error : '';
-          if (response.status === 422 && serverError === 'invalid_name') {
+          const serverError = result?.ok === false && typeof result.error === 'string' ? result.error : '';
+          const knownRejections = {400:['invalid_request','invalid_json'],403:['origin_not_allowed'],405:['method_not_allowed'],413:['request_too_large'],415:['json_required'],422:['invalid_submission','invalid_name','invalid_email','invalid_score'],429:['rate_limited']};
+          // An earlier unknown result cannot be disproved by a later rejection.
+          ambiguousFailure = Boolean(activeRetry) || !knownRejections[response.status]?.includes(serverError);
+          if (!activeRetry && response.status === 422 && serverError === 'invalid_name') {
             retryLockedSubmission = null;
             nameInput.disabled = false;
             emailInput.disabled = false;
+            formFeedback.name = true;
             nameInput.setAttribute('aria-invalid', 'true');
             nameError.textContent = text().invalidName;
             nameInput.focus();
             return;
           }
-          if (response.status === 422 && serverError === 'invalid_email') {
+          if (!activeRetry && response.status === 422 && serverError === 'invalid_email') {
             retryLockedSubmission = null;
             nameInput.disabled = false;
             emailInput.disabled = false;
+            formFeedback.email = true;
             emailInput.setAttribute('aria-invalid', 'true');
             emailError.textContent = text().invalidEmail;
             emailInput.focus();
             return;
           }
-          if (response.status === 429 || serverError === 'rate_limited') {
+          if (response.status === 429 && serverError === 'rate_limited') {
             if (!activeRetry) retryLockedSubmission = null;
             rateLimitUntil = Date.now() + Math.max(1000, retryAfterMs(response));
             applyRateLimit();
@@ -597,7 +625,9 @@
         }
 
         const scores = normalizePublicScores(result?.scores);
-        if (!result?.ok || typeof result.accepted !== 'boolean' || !scores) {
+        if (result?.ok !== true || typeof result.accepted !== 'boolean' || !scores
+          || (result.replayed !== undefined && typeof result.replayed !== 'boolean')
+          || (result.accepted ? !Number.isInteger(result.position) || result.position < 1 || result.position > 10 : result.position !== null)) {
           throw new Error('ambiguous_response');
         }
         ambiguousFailure = false;
@@ -607,13 +637,10 @@
         submittedScore = score;
         draft = null;
         cachedScores = scores;
-        const nodes = [];
-        const notice = localTestNotice();
-        if (notice) nodes.push(notice);
-        const highlightPosition = result.accepted && !result.replayed && Number.isInteger(result.position) ? result.position : null;
-        nodes.push(...renderRanking(scores, highlightPosition));
-        if (!result.accepted) nodes.push(status(text().displaced));
-        panel.replaceChildren(...nodes);
+        formFeedback = {};
+        submissionNotice = result.accepted ? null : 'displaced';
+        highlightPosition = result.accepted && !result.replayed ? result.position : null;
+        renderCurrentLeaderboard();
       } catch {
         if (!gameOverActive || submitSession !== gameOverSessionId) return;
         pendingSubmission = null;
@@ -623,17 +650,19 @@
             score,
             sessionId: submitSession,
             payload,
-            createdAt: activeRetry?.createdAt || attemptStartedAt
+            createdAt: activeRetry?.createdAt ?? attemptStartedAt
           };
           nameInput.value = payload.name;
           emailInput.value = payload.email;
           nameInput.disabled = true;
           emailInput.disabled = true;
-          error.textContent = text().retryAmbiguous;
+          formFeedback.error = 'retryAmbiguous';
+          updateRetryState();
         } else {
           retryLockedSubmission = null;
           nameInput.disabled = false;
           emailInput.disabled = false;
+          formFeedback.error = 'saveFailed';
           error.textContent = text().saveFailed;
         }
         error.setAttribute('role', 'alert');
@@ -644,6 +673,11 @@
             && Date.now() - retryLockedSubmission.createdAt >= SUBMISSION_RECEIPT_TTL_MS;
           if (!applyRateLimit()) save.disabled = Boolean(retryExpired);
           save.textContent = text().save;
+          if (retryExpired) updateRetryState();
+          if (lastGameOverLanguage !== language()) {
+            lastGameOverLanguage = language();
+            if (submittedScore !== score) renderCurrentLeaderboard();
+          }
         }
       }
     });
@@ -652,14 +686,25 @@
   }
 
   function renderCurrentLeaderboard() {
+    if (retryExpiryTimer !== null) window.clearTimeout(retryExpiryTimer);
+    retryExpiryTimer = null;
+    const focused = panel.ownerDocument.activeElement;
+    const focusSelector = panel.contains(focused)
+      ? focused.matches('input') ? `input[type="${focused.type}"]` : focused.matches('button') ? `.${focused.classList.contains('leaderboard-refresh') ? 'leaderboard-refresh' : 'leaderboard-save'}` : null
+      : null;
     const score = parseScore();
     const scores = cachedScores || [];
     const nodes = [];
     const notice = localTestNotice();
     if (notice) nodes.push(notice);
     if (submittedScore !== score && qualifies(score, scores)) nodes.push(buildForm(score));
-    nodes.push(...renderRanking(scores));
+    nodes.push(...renderRanking(scores, highlightPosition));
+    if (submissionNotice) nodes.push(status(text()[submissionNotice]));
     panel.replaceChildren(...nodes);
+    if (focusSelector) {
+      const target = panel.querySelector(focusSelector);
+      if (target && !target.disabled && !target.hidden) target.focus({preventScroll:true});
+    }
   }
 
   async function showGameOverLeaderboard({forceLoad = false} = {}) {
@@ -721,7 +766,6 @@
 
       if (submissionPending) {
         lastGameOverScore = score;
-        lastGameOverLanguage = currentLanguage;
         return;
       }
 
@@ -751,6 +795,11 @@
       pendingSubmission = null;
       retryLockedSubmission = null;
       draft = null;
+      formFeedback = {};
+      submissionNotice = null;
+      highlightPosition = null;
+      if (retryExpiryTimer !== null) window.clearTimeout(retryExpiryTimer);
+      retryExpiryTimer = null;
       cachedScores = null;
       scoresLoading = false;
       loadFailed = false;

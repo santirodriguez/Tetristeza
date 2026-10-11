@@ -214,7 +214,9 @@
     popup.document.close();
     cloneStylesTo(popup.document);
     const logo = popup.document.getElementById('detached-logo');
-    logo.src = new URL('assets/branding/tetristeza-logo-1.svg', document.baseURI).href;
+    logo.width = 640; logo.height = 196;
+    logo.onerror = () => { logo.onerror = null; logo.src = new URL('assets/branding/tetristeza-logo-1.svg', document.baseURI).href; };
+    logo.src = new URL('assets/branding/tetristeza-logo-runtime.webp', document.baseURI).href;
     popup.document.getElementById('detached-return').textContent = c.returnPage;
     popup.document.documentElement.lang = language();
     popup.document.title = c.displayTitle;
